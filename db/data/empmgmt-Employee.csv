@@ -1,0 +1,9 @@
+ID,empId,name,email,passwordHash,department,role,status,manager_ID
+11111111-1111-1111-1111-111111111111,EMP0001,Alice Johnson,alice@company.com,$2b$10$dummyhash1,IT,employee,active,66666666-6666-6666-6666-666666666666
+22222222-2222-2222-2222-222222222222,EMP0002,Bob Smith,bob@company.com,$2b$10$dummyhash2,IT,employee,active,66666666-6666-6666-6666-666666666666
+33333333-3333-3333-3333-333333333333,EMP0003,Charlie Brown,charlie@company.com,$2b$10$dummyhash3,Finance,employee,active,77777777-7777-7777-7777-777777777777
+44444444-4444-4444-4444-444444444444,EMP0004,Diana Prince, diana@company.com,$2b$10$dummyhash4,HR,employee,active,88888888-8888-8888-8888-888888888888
+55555555-5555-5555-5555-555555555555,EMP0005,Ethan Hunt,ethan@company.com,$2b$10$dummyhash5,Finance,employee,inactive,77777777-7777-7777-7777-777777777777
+66666666-6666-6666-6666-666666666666,EMP0006,Michael Scott,michael@company.com,$2b$10$dummyhash6,IT,manager,active,88888888-8888-8888-8888-888888888888
+77777777-7777-7777-7777-777777777777,EMP0007,Sarah Connor,sarah@company.com,$2b$10$dummyhash7,Finance,manager,active,88888888-8888-8888-8888-888888888888
+88888888-8888-8888-8888-888888888888,EMP0008,Emma Wilson,emma@company.com,$2b$10$dummyhash8,HR,hr,active,
