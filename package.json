@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@sap/cds": "^10"
+    "@sap/cds": "^10",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "@cap-js/cds-types": "^0.18.0",
     "@cap-js/sqlite": "^3",
+    "@types/jsonwebtoken": "^9.0.10",
     "sqlite3": "^6.0.1"
   },
   "scripts": {
