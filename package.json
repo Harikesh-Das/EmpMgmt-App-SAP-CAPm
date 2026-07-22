@@ -18,5 +18,35 @@
     "start": "cds-serve",
     "watch": "cds watch"
   },
-  "private": true
+  "private": true,
+  "cds": {
+    "requires": {
+      "auth": {
+        "kind": "mocked",
+        "users": {
+          "alice": {
+            "password": "alice",
+            "roles": [
+              "AuthenticatedUser",
+              "Employee"
+            ]
+          },
+          "bob": {
+            "password": "bob",
+            "roles": [
+              "AuthenticatedUser",
+              "Manager"
+            ]
+          },
+          "hr": {
+            "password": "hr",
+            "roles": [
+              "AuthenticatedUser",
+              "HR"
+            ]
+          }
+        }
+      }
+    }
+  }
 }

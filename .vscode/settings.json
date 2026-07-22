@@ -1,5 +1,10 @@
 {
     "cSpell.words": [
         "empmgmt"
+    ],
+    "cSpell.ignoreWords": [
+        "Enter",
+        "XSAPPNAME",
+        "enter"
     ]
 }

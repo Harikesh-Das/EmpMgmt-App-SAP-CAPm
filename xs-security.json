@@ -1,0 +1,136 @@
+{
+  "xsappname": "employee-leave-management",
+  "tenant-mode": "dedicated",
+
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.Employee.Read",
+      "description": "Read employee information"
+    },
+    {
+      "name": "$XSAPPNAME.Employee.Create",
+      "description": "Create employee records"
+    },
+    {
+      "name": "$XSAPPNAME.Employee.Update",
+      "description": "Update employee records"
+    },
+    {
+      "name": "$XSAPPNAME.Employee.Delete",
+      "description": "Delete employee records"
+    },
+
+    {
+      "name": "$XSAPPNAME.Leave.Apply",
+      "description": "Apply for leave"
+    },
+    {
+      "name": "$XSAPPNAME.Leave.Read",
+      "description": "Read leave requests"
+    },
+    {
+      "name": "$XSAPPNAME.Leave.Approve",
+      "description": "Approve leave requests"
+    },
+    {
+      "name": "$XSAPPNAME.Leave.Reject",
+      "description": "Reject leave requests"
+    },
+    {
+      "name": "$XSAPPNAME.Leave.Cancel",
+      "description": "Cancel leave requests"
+    },
+
+    {
+      "name": "$XSAPPNAME.Department.Read",
+      "description": "Read department information"
+    },
+    {
+      "name": "$XSAPPNAME.Department.Manage",
+      "description": "Manage departments"
+    },
+
+    {
+      "name": "$XSAPPNAME.Holiday.Read",
+      "description": "Read holidays"
+    },
+    {
+      "name": "$XSAPPNAME.Holiday.Manage",
+      "description": "Manage holidays"
+    },
+
+    {
+      "name": "$XSAPPNAME.LeaveBalance.Read",
+      "description": "Read leave balances"
+    },
+    {
+      "name": "$XSAPPNAME.LeaveBalance.Manage",
+      "description": "Manage leave balances"
+    }
+  ],
+
+  "role-templates": [
+    {
+      "name": "Employee",
+      "description": "Employee Role",
+      "scope-references": [
+        "$XSAPPNAME.Employee.Read",
+        "$XSAPPNAME.Leave.Apply",
+        "$XSAPPNAME.Leave.Read",
+        "$XSAPPNAME.Leave.Cancel",
+        "$XSAPPNAME.Holiday.Read",
+        "$XSAPPNAME.LeaveBalance.Read"
+      ]
+    },
+
+    {
+      "name": "Manager",
+      "description": "Manager Role",
+      "scope-references": [
+        "$XSAPPNAME.Employee.Read",
+        "$XSAPPNAME.Leave.Apply",
+        "$XSAPPNAME.Leave.Read",
+        "$XSAPPNAME.Leave.Cancel",
+        "$XSAPPNAME.Leave.Approve",
+        "$XSAPPNAME.Leave.Reject",
+        "$XSAPPNAME.Department.Read",
+        "$XSAPPNAME.Holiday.Read",
+        "$XSAPPNAME.LeaveBalance.Read"
+      ]
+    },
+
+    {
+      "name": "HR",
+      "description": "HR Role",
+      "scope-references": [
+        "$XSAPPNAME.Employee.Read",
+        "$XSAPPNAME.Employee.Create",
+        "$XSAPPNAME.Employee.Update",
+        "$XSAPPNAME.Employee.Delete",
+        "$XSAPPNAME.Leave.Apply",
+        "$XSAPPNAME.Leave.Read",
+        "$XSAPPNAME.Leave.Approve",
+        "$XSAPPNAME.Leave.Reject",
+        "$XSAPPNAME.Leave.Cancel",
+        "$XSAPPNAME.Department.Read",
+        "$XSAPPNAME.Department.Manage",
+        "$XSAPPNAME.Holiday.Read",
+        "$XSAPPNAME.Holiday.Manage",
+        "$XSAPPNAME.LeaveBalance.Read",
+        "$XSAPPNAME.LeaveBalance.Manage"
+      ]
+    },
+    {
+      "name": "AuthenticatedUser",
+      "description": "authenticate users",
+      "scope-references": [
+        "$XSAPPNAME.Employee.Read",
+        "$XSAPPNAME.Leave.Apply",
+        "$XSAPPNAME.Leave.Read",
+        "$XSAPPNAME.Leave.Cancel",
+        "$XSAPPNAME.Holiday.Read",
+        "$XSAPPNAME.LeaveBalance.Read"
+      ]
+    }
+  ]
+}
