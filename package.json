@@ -24,22 +24,22 @@
       "auth": {
         "kind": "mocked",
         "users": {
-          "alice": {
+          "alice@company.com": {
             "password": "alice",
             "roles": [
               "AuthenticatedUser",
               "Employee"
             ]
           },
-          "bob": {
-            "password": "bob",
+          "michael@company.com": {
+            "password": "michael",
             "roles": [
               "AuthenticatedUser",
               "Manager"
             ]
           },
-          "hr": {
-            "password": "hr",
+          "diana@company.com": {
+            "password": "diana",
             "roles": [
               "AuthenticatedUser",
               "HR"
