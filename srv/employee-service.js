@@ -1,8 +1,10 @@
 import cds from "@sap/cds";
 
+import bcrypt from 'bcrypt';
+
 export default cds.service.impl(function () {
 
-    const { Employee } = this.entities;
+    const { Employee, LeaveBalance } = this.entities;
 
     this.on("READ", Employee, async (req) => {
 
@@ -44,5 +46,195 @@ export default cds.service.impl(function () {
         req.reject(403, "Forbidden");
 
     });
+
+    this.on("CREATE", Employee, async (req) => {
+
+
+        if (!req.user.is("HR")) {
+            return req.reject(403, "Forbidden");
+        }
+
+        const tx = cds.transaction(req);
+
+        const data = { ...req.data };
+
+
+        const empExists = await tx.run(
+            SELECT.one.from(Employee).where({ empId: data.empId })
+        );
+
+        if (empExists) {
+            return req.reject(400, "Employee ID already exists.");
+        }
+
+
+        const emailExists = await tx.run(
+            SELECT.one.from(Employee).where({ email: data.email })
+        );
+
+        if (emailExists) {
+            return req.reject(400, "Email already exists.");
+        }
+
+
+        if (data.manager_ID) {
+
+            const manager = await tx.run(
+                SELECT.one
+                    .from(Employee)
+                    .where({ ID: data.manager_ID })
+            );
+
+            if (!manager) {
+                return req.reject(400, "Manager not found.");
+            }
+
+            if (manager.role !== "manager" && manager.role !== "hr") {
+                return req.reject(400, "Invalid manager.");
+            }
+        }
+
+
+        data.passwordHash = await bcrypt.hash("Password@123", 12);
+
+
+        const employee = await tx.run(
+            INSERT.into(Employee).entries(data)
+        );
+
+
+        await tx.run(
+            INSERT.into(LeaveBalance).entries({
+                employee_ID: employee.ID
+            })
+        );
+
+        return employee;
+
+    });
+    this.on("UPDATE", Employee, async (req) => {
+
+        if (!req.user.is("HR")) {
+            return req.reject(403, "Forbidden");
+        }
+
+        const tx = cds.transaction(req);
+
+        const data = { ...req.data };
+
+        const employee = await tx.run(
+            SELECT.one.from(Employee).where({ ID: data.ID })
+        );
+
+        if (!employee) {
+            return req.reject(404, "Employee not found.");
+        }
+
+
+        if (data.email && data.email !== employee.email) {
+
+            const emailExists = await tx.run(
+                SELECT.one.from(Employee).where({ email: data.email })
+            );
+
+            if (emailExists) {
+                return req.reject(400, "Email already exists.");
+            }
+        }
+
+
+        if (data.empId && data.empId !== employee.empId) {
+
+            const empExists = await tx.run(
+                SELECT.one.from(Employee).where({ empId: data.empId })
+            );
+
+            if (empExists) {
+                return req.reject(400, "Employee ID already exists.");
+            }
+        }
+
+
+        if (data.manager_ID) {
+
+            if (data.manager_ID === employee.ID) {
+                return req.reject(400, "Employee cannot be their own manager.");
+            }
+
+            const manager = await tx.run(
+                SELECT.one.from(Employee).where({ ID: data.manager_ID })
+            );
+
+            if (!manager) {
+                return req.reject(400, "Manager not found.");
+            }
+
+            if (manager.role !== "manager" && manager.role !== "hr") {
+                return req.reject(400, "Invalid manager.");
+            }
+        }
+
+        await tx.run(
+            UPDATE(Employee)
+                .set(data)
+                .where({ ID: data.ID })
+        );
+
+        return tx.run(
+            SELECT.one.from(Employee).where({ ID: data.ID })
+        );
+
+    });
+
+    this.on("DELETE", Employee, async (req) => {
+
+        if (!req.user.is("HR")) {
+            return req.reject(403, "Forbidden");
+        }
+
+        const tx = cds.transaction(req);
+
+        const ID = req.params[0].ID;
+
+        const employee = await tx.run(
+            SELECT.one.from(Employee).where({ ID })
+        );
+
+        if (!employee) {
+            return req.reject(404, "Employee not found.");
+        }
+
+
+        await tx.run(
+            UPDATE(Employee)
+                .set({ manager_ID: null })
+                .where({ manager_ID: ID })
+        );
+
+
+        await tx.run(
+            DELETE.from(LeaveBalance)
+                .where({ employee_ID: ID })
+        );
+
+
+        await tx.run(
+            DELETE.from(Leave)
+                .where({ employee_ID: ID })
+        );
+
+
+        await tx.run(
+            DELETE.from(Employee)
+                .where({ ID })
+        );
+
+        return {
+            message: "Employee deleted successfully."
+        };
+
+    });
+
+
 
 });
