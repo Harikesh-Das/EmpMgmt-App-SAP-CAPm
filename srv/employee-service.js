@@ -4,51 +4,59 @@ import bcrypt from 'bcrypt';
 
 export default cds.service.impl(function () {
 
-    const { Employee, LeaveBalance } = this.entities;
+    const { Employee, Leave, LeaveBalance } = this.entities;
 
     this.on("READ", Employee, async (req) => {
 
+        const tx = cds.transaction(req);
+
         if (req.user.is("HR")) {
-            return SELECT.from(Employee);
+            return tx.run(
+                SELECT.from(Employee)
+            );
         }
 
         if (req.user.is("Manager")) {
 
-            const manager = await SELECT.one
-                .from(Employee)
-                .where({
-                    email: req.user.id
-                });
+            const manager = await tx.run(
+                SELECT.one
+                    .from(Employee)
+                    .where({
+                        email: req.user.id
+                    })
+            );
 
             if (!manager) {
-                req.reject(403, "Manager record not found.");
+                return req.reject(403, "Manager record not found.");
             }
 
-            return SELECT
-                .from(Employee)
-                .where({
-                    ID: manager.ID
-                })
-                .or({
-                    manager_ID: manager.ID
-                });
+            return tx.run(
+                SELECT.from(Employee)
+                    .where({
+                        ID: manager.ID
+                    })
+                    .or({
+                        manager_ID: manager.ID
+                    })
+            );
         }
 
         if (req.user.is("Employee")) {
 
-            return SELECT.one
-                .from(Employee)
-                .where({
-                    email: req.user.id
-                });
+            return tx.run(
+                SELECT.one
+                    .from(Employee)
+                    .where({
+                        email: req.user.id
+                    })
+            );
         }
 
-        req.reject(403, "Forbidden");
+        return req.reject(403, "Forbidden");
 
     });
 
     this.on("CREATE", Employee, async (req) => {
-
 
         if (!req.user.is("HR")) {
             return req.reject(403, "Forbidden");
@@ -58,15 +66,13 @@ export default cds.service.impl(function () {
 
         const data = { ...req.data };
 
-
-        const empExists = await tx.run(
+        const empIdExists = await tx.run(
             SELECT.one.from(Employee).where({ empId: data.empId })
         );
 
-        if (empExists) {
+        if (empIdExists) {
             return req.reject(400, "Employee ID already exists.");
         }
-
 
         const emailExists = await tx.run(
             SELECT.one.from(Employee).where({ email: data.email })
@@ -75,7 +81,6 @@ export default cds.service.impl(function () {
         if (emailExists) {
             return req.reject(400, "Email already exists.");
         }
-
 
         if (data.manager_ID) {
 
@@ -90,28 +95,26 @@ export default cds.service.impl(function () {
             }
 
             if (manager.role !== "manager" && manager.role !== "hr") {
-                return req.reject(400, "Invalid manager.");
+                return req.reject(400, "Manager must have Manager or HR role.");
             }
         }
 
-
         data.passwordHash = await bcrypt.hash("Password@123", 12);
 
-
-        const employee = await tx.run(
+        const createdEmployee = await tx.run(
             INSERT.into(Employee).entries(data)
         );
 
-
         await tx.run(
             INSERT.into(LeaveBalance).entries({
-                employee_ID: employee.ID
+                employee_ID: createdEmployee.ID
             })
         );
 
-        return employee;
+        return createdEmployee;
 
     });
+
     this.on("UPDATE", Employee, async (req) => {
 
         if (!req.user.is("HR")) {
@@ -120,21 +123,26 @@ export default cds.service.impl(function () {
 
         const tx = cds.transaction(req);
 
-        const data = { ...req.data };
+        const ID = req.params[0].ID;
 
         const employee = await tx.run(
-            SELECT.one.from(Employee).where({ ID: data.ID })
+            SELECT.one
+                .from(Employee)
+                .where({ ID })
         );
 
         if (!employee) {
             return req.reject(404, "Employee not found.");
         }
 
+        const data = { ...req.data };
 
         if (data.email && data.email !== employee.email) {
 
             const emailExists = await tx.run(
-                SELECT.one.from(Employee).where({ email: data.email })
+                SELECT.one
+                    .from(Employee)
+                    .where({ email: data.email })
             );
 
             if (emailExists) {
@@ -142,27 +150,29 @@ export default cds.service.impl(function () {
             }
         }
 
-
         if (data.empId && data.empId !== employee.empId) {
 
-            const empExists = await tx.run(
-                SELECT.one.from(Employee).where({ empId: data.empId })
+            const empIdExists = await tx.run(
+                SELECT.one
+                    .from(Employee)
+                    .where({ empId: data.empId })
             );
 
-            if (empExists) {
+            if (empIdExists) {
                 return req.reject(400, "Employee ID already exists.");
             }
         }
 
-
         if (data.manager_ID) {
 
-            if (data.manager_ID === employee.ID) {
+            if (data.manager_ID === ID) {
                 return req.reject(400, "Employee cannot be their own manager.");
             }
 
             const manager = await tx.run(
-                SELECT.one.from(Employee).where({ ID: data.manager_ID })
+                SELECT.one
+                    .from(Employee)
+                    .where({ ID: data.manager_ID })
             );
 
             if (!manager) {
@@ -170,18 +180,22 @@ export default cds.service.impl(function () {
             }
 
             if (manager.role !== "manager" && manager.role !== "hr") {
-                return req.reject(400, "Invalid manager.");
+                return req.reject(400, "Manager must have Manager or HR role.");
             }
         }
+
+        delete data.passwordHash;
 
         await tx.run(
             UPDATE(Employee)
                 .set(data)
-                .where({ ID: data.ID })
+                .where({ ID })
         );
 
         return tx.run(
-            SELECT.one.from(Employee).where({ ID: data.ID })
+            SELECT.one
+                .from(Employee)
+                .where({ ID })
         );
 
     });
@@ -197,13 +211,14 @@ export default cds.service.impl(function () {
         const ID = req.params[0].ID;
 
         const employee = await tx.run(
-            SELECT.one.from(Employee).where({ ID })
+            SELECT.one
+                .from(Employee)
+                .where({ ID })
         );
 
         if (!employee) {
             return req.reject(404, "Employee not found.");
         }
-
 
         await tx.run(
             UPDATE(Employee)
@@ -211,18 +226,15 @@ export default cds.service.impl(function () {
                 .where({ manager_ID: ID })
         );
 
-
         await tx.run(
             DELETE.from(LeaveBalance)
                 .where({ employee_ID: ID })
         );
 
-
         await tx.run(
             DELETE.from(Leave)
                 .where({ employee_ID: ID })
         );
-
 
         await tx.run(
             DELETE.from(Employee)
