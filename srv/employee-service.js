@@ -12,7 +12,7 @@ export default cds.service.impl(function () {
 
         if (req.user.is("HR")) {
             return tx.run(
-                SELECT.from(Employee)
+                req.query
             );
         }
 
@@ -31,7 +31,7 @@ export default cds.service.impl(function () {
             }
 
             return tx.run(
-                SELECT.from(Employee)
+                req.query
                     .where({
                         ID: manager.ID
                     })
@@ -43,18 +43,25 @@ export default cds.service.impl(function () {
 
         if (req.user.is("Employee")) {
 
+            const employee = await tx.run(
+                SELECT.one.from(Employee).where({ email: req.user.id })
+            )
+            if (!employee) {
+                return req.reject(404, "Not found");
+            }
             return tx.run(
-                SELECT.one
-                    .from(Employee)
+                req.query
                     .where({
-                        email: req.user.id
+                        ID: employee.ID
                     })
+
             );
         }
 
         return req.reject(403, "Forbidden");
 
     });
+    
 
     this.on("CREATE", Employee, async (req) => {
 
