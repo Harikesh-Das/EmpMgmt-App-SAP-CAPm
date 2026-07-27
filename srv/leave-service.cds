@@ -10,4 +10,4 @@ service LeaveService {
 
     entity Holiday as projection on db.Holiday;
 
-}
+} 
