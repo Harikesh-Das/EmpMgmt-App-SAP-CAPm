@@ -1,22 +1,21 @@
 import cds from '@sap/cds';
 
+
+
 export default cds.service.impl(function () {
-    // define Leave entity from current service
+    /* Access Entites */
     const { Leave } = this.entities;
-
-    // define Employee, LeaveBalance entities from empmgmt service
     const { Employee, LeaveBalance } = cds.entities('empmgmt');
+    //-------------------------------------------------------------------------------
 
-    // validate if the provided value is a date
+    /* Helper Fucntions */
     function isValidDate(value) {
         return !Number.isNaN(new Date(value).getTime());
     }
 
-    // normalize the date to YYYY-MM-DD format
     function normalizeDate(value) {
         return new Date(value).toISOString().slice(0, 10);
     }
-
 
     function getInclusiveDayCount(sDate, eDate) {
         const start = new Date(sDate);
@@ -31,61 +30,55 @@ export default cds.service.impl(function () {
         )
     }
 
-    this.before('CREATE', Leave, async (req) => {
+    async function getCurrentLeave(tx, req) {
+        return await tx.run(
+            SELECT.one.from(Leave).where({ ID: req.data.ID })
+        )
+    }
 
-        // start a transaction for the request
+    async function leaveValidations(req, leave, employee) {
+
+        if (!leave) return req.reject(404, "Leave not found")
+
+        if (!leave.approver_ID) return req.reject(400, 'There is no approver to the leave')
+
+        if (leave.approver_ID !== employee.ID && !req.user.is('HR')) return req.reject(403, 'You cannot act on this leave');
+
+        if (employee.status !== 'active') return req.reject(400, 'Approver Inactive')
+
+        if (leave.status !== 'pending') {
+            return req.reject(
+                400,
+                `Only pending leaves can be processed. Current status: ${leave.status}`
+            );
+        }
+    }
+    //--------------------------------------------------------------------
+
+    /* Create Leave request Handler */
+    this.before('CREATE', Leave, async (req) => {
         const tx = cds.transaction(req);
 
-        // get employee record for the current user
-        const employee = await getCurrentEmployee(tx,req);
+        //Employee Validation
+        const employee = await getCurrentEmployee(tx, req);
+        if (!employee) return req.reject(404, "User not found.");
+        if (employee.status !== 'active') return req.reject(400, "Employee not active.");
 
-        // reject if employee does not exist
-        if (!employee) {
-            return req.reject(404, "User not found.");
-        }
-
-        // reject if employee is not active
-        if (employee.status !== 'active') {
-            return req.reject(400, "Employee not active.");
-        }
-
-        // read start and end dates from request data
+        //Dates Validation
         const startDate = req.data.startDate;
         const endDate = req.data.endDate;
+        if (!startDate || !endDate) return req.reject(400, "Either start or end date is missing");
+        if (!isValidDate(startDate) || !isValidDate(endDate)) return req.reject(400, "Incorrect start or end date");
 
-        // reject if start or end date is missing
-        if (!startDate || !endDate) {
-            return req.reject(400, "Either start or end date is missing");
-        }
-
-        // reject if either date is invalid
-        if (!isValidDate(startDate) || !isValidDate(endDate)) {
-            return req.reject(400, "Incorrect start or end date")
-        }
-
-        // normalize dates for comparison
         const normalizedStartDate = normalizeDate(startDate);
         const normalizedEndDate = normalizeDate(endDate);
+        if (normalizedEndDate < normalizedStartDate) return req.reject(400, "End date can't be before start date.");
 
-        // reject if end date is before start date
-        if (normalizedEndDate < normalizedStartDate) {
-            return req.reject(400, "End date can't be before start date.")
-        }
-
-
-
+        // Check Leave Balance
         const balance = await tx.run(
             SELECT.one.from(LeaveBalance).where({ employee: employee.ID })
         );
-
-
-        if (!balance) {
-            return req.reject(404, "No balance record found");
-        }
-        else {
-            console.log(balance)
-
-        }
+        if (!balance) return req.reject(404, "No balance record found");
 
         const requestedDays = getInclusiveDayCount(normalizedStartDate, normalizedEndDate);
 
@@ -97,13 +90,11 @@ export default cds.service.impl(function () {
         };
 
 
-        if (req.data.leaveType === 'sick') {
-            if ((balance.sickBalanceRemaining < requestedDays)) {
-                return req.reject(400, "Insufficient leave balance")
-            }
-        };
+        if (req.data.leaveType === 'sick' && balance.sickBalanceRemaining < requestedDays) {
+            return req.reject(400, "Insufficient leave balance")
+        }
 
-
+        //Check Overlapping Leaves
         const overlappingLeave = await tx.run(
             SELECT.one
                 .from(Leave)
@@ -120,94 +111,52 @@ export default cds.service.impl(function () {
                 "Leave dates overlap with an existing pending or approved leave."
             );
         }
+        //Replaces the employee field in Leave with employee ID
+        req.data.employee = { ID: employee.ID };
 
-        // assign the current employee to the leave record
-        req.data.employee = {
-            ID: employee.ID
-        };
-
-        // handle Employee user role logic
+        // Employee Leave Application
         if (req.user.is('Employee')) {
-
-            // confirm manager exists for employee
             const managerExists = await tx.run(
                 SELECT.one.from(Employee).where({ ID: employee.manager_ID })
             );
-
-            // reject if manager not found
-            if (!managerExists) {
-                return req.reject(404, "Manager not found");
-            }
-
-            // set approver to manager
-            req.data.approver = {
-                ID: employee.manager_ID
-            };
+            if (!managerExists) return req.reject(404, "Manager not found");
+            req.data.approver = { ID: employee.manager_ID };
         }
 
-        // handle Manager user role logic
+        // Manager Leave Application
         if (req.user.is('Manager')) {
-            // reject if manager has no manager reference
-            if (!employee.manager_ID) {
-                return req.reject(404, "Manager not found");
-            }
-
-            // confirm the manager's manager is HR
+            if (!employee.manager_ID) return req.reject(404, "Manager not found");
             const hrExists = await tx.run(
                 SELECT.one.from(Employee).where({ ID: employee.manager_ID })
             );
-
-            // reject if HR not found
-            if (!hrExists) {
-                return req.reject(404, "Manager not found");
-            }
-            // assign approver if HR exists
+            if (!hrExists) return req.reject(404, "Manager not found");
             if (hrExists.role === 'HR') {
-
-                req.data.approver = {
-                    ID: employee.manager_ID
-                }
+                req.data.approver = { ID: employee.manager_ID };
             } else {
                 return req.reject(404, "Approver is not HR")
             }
-
         }
 
-        // handle HR user role logic
+        //HR Leave Application
         if (req.user.is('HR')) {
-
-            // find another HR employee for approval
             const anotherHr = await tx.run(
                 SELECT.one.from(Employee).where({ role: 'HR' }).where('email !=', req.user.id)
             );
-
-            // reject if no other HR exists
-            if (!anotherHr) {
-                return req.reject(404, "No other HR found.");
-            }
-
-            // set approver to other HR
-            req.data.approver = {
-                ID: anotherHr.ID
-            }
+            if (!anotherHr) return req.reject(404, "No other HR found.");
+            req.data.approver = { ID: anotherHr.ID };
         }
 
-        // reject if no approver was assigned
-        if (!req.data.approver) {
-            return req.reject(404, "Approver not found")
-        }
-
-        // set leave status and applied date
+        if (!req.data.approver) return req.reject(404, "Approver not found")
         req.data.status = 'pending';
         req.data.appliedOn = new Date().toISOString();
-
-
     });
+    //----------------------------------------------------------------------------------------
 
+    /* View Leave Handler */
     this.before('READ', Leave, async (req) => {
         const tx = cds.transaction(req);
 
-        const employee = await getCurrentEmployee(tx,req);
+        const employee = await getCurrentEmployee(tx, req);
 
         if (!employee) {
             return req.reject(404, "User not found.");
@@ -227,7 +176,6 @@ export default cds.service.impl(function () {
 
             const employeeIDs = managerEmployees.map(emp => emp.ID);
             employeeIDs.push(employee.ID);
-
             req.query.where('employee_ID in', employeeIDs);
             return;
 
@@ -239,6 +187,146 @@ export default cds.service.impl(function () {
             });
             return;
         }
-    })
+    });
+    //--------------------------------------------------------------------------------------
+
+    /* Approve Leave Handler */
+    this.on('approveLeave', async (req) => {
+        const tx = cds.transaction(req);
+
+        const employee = await getCurrentEmployee(tx, req);
+
+        const leave = await getCurrentLeave(tx, req);
+
+        //Leave Validations
+        await leaveValidations(req, leave, employee);
+
+        //Leave Balance Validation
+        const balance = await tx.run(
+            SELECT.one
+                .from(LeaveBalance)
+                .where({ employee: leave.employee_ID })
+        );
+        if (!balance) return req.reject(404, "Leave balance not found.");
+
+        const leaveDays = getInclusiveDayCount(
+            leave.startDate,
+            leave.endDate
+        );
+
+        // Updating Casual Leaves in LeaveBalance
+        if (leave.leaveType === 'casual') {
+
+            if (balance.casualBalanceRemaining < leaveDays) return req.reject(400, "Insufficient leave balance.");
+
+            await tx.run(
+                UPDATE(LeaveBalance)
+                    .set({
+                        casualBalanceRemaining:
+                            balance.casualBalanceRemaining - leaveDays
+                    })
+                    .where({ employee: leave.employee_ID })
+            );
+        }
+
+        // Updating Sick Leaves in LeaveBalance
+        if (leave.leaveType === 'sick') {
+
+            if (balance.sickBalanceRemaining < leaveDays) return req.reject(400, "Insufficient leave balance");
+
+            await tx.run(
+                UPDATE(LeaveBalance)
+                    .set({
+                        sickBalanceRemaining:
+                            balance.sickBalanceRemaining - leaveDays
+                    })
+                    .where({ employee: leave.employee_ID })
+            );
+        }
+
+        //Updating Approval Status in Leave
+        await tx.run(
+            UPDATE(Leave)
+                .set({
+                    status: 'approved',
+                    approvedOn: new Date().toISOString()
+                })
+                .where({ ID: leave.ID })
+        );
+
+        return {
+            message: "Leave Approved Successfully"
+        }
+    });
+
+    /* Reject Leave Handler */
+    this.on('rejectLeave', async (req) => {
+        const tx = cds.transaction(req);
+
+        const employee = await getCurrentEmployee(tx, req);
+
+        const leave = await getCurrentLeave(tx, req);
+
+        //Leave Validatdion
+        await leaveValidations(req, leave, employee);
+
+        // Updating Rejection in Leave
+        await tx.run(
+            UPDATE(Leave).
+                set({
+                    status: 'rejected',
+                    approvedOn: new Date().toISOString(),
+
+                })
+                .where({ ID: leave.ID })
+        )
+
+        return {
+            message: "Leave Rejected Successfully"
+        }
+
+    });
+
+    /* Cancel Leave Handler */
+    this.on('cancelLeave', async (req) => {
+
+        const tx = cds.transaction(req);
+
+        // Employee Validation
+        const employee = await getCurrentEmployee(tx, req);
+
+        if (!employee) return req.reject(404, "User not found");
+
+        if (employee.status !== 'active') return req.reject(400, 'User Inactive');
+
+        //Leave Validatdion
+        const leave = await getCurrentLeave(tx, req);
+
+        if (!leave) return req.reject(404, "Leave not found");
+
+        if (leave.employee_ID !== employee.ID) return req.reject(403, "You can only cancel your own leave")
+
+        if (leave.status !== 'pending') {
+            return req.reject(
+                400,
+                `Only pending leaves can be cancelled. Current status: ${leave.status}`
+            );
+        }
+
+
+        // Updating Cancellation in Leave
+        await tx.run(
+            UPDATE(Leave)
+                .set({
+                    status: 'cancelled'
+                })
+                .where({ ID: leave.ID })
+
+        );
+
+        return {
+            message: "Cancelled Leave"
+        }
+    });
 
 });

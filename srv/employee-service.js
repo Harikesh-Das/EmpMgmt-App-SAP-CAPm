@@ -4,8 +4,11 @@ import bcrypt from 'bcrypt';
 
 export default cds.service.impl(function () {
 
+    /* Access Entities */
     const { Employee, Leave, LeaveBalance } = this.entities;
+//---------------------------------------------------------------------------
 
+    /* View Employee Handler */
     this.on("READ", Employee, async (req) => {
 
         const tx = cds.transaction(req);
@@ -61,8 +64,9 @@ export default cds.service.impl(function () {
         return req.reject(403, "Forbidden");
 
     });
-    
+//-------------------------------------------------------------------------------------------------
 
+    /* Create Employee Handler */
     this.on("CREATE", Employee, async (req) => {
 
         if (!req.user.is("HR")) {
@@ -121,7 +125,9 @@ export default cds.service.impl(function () {
         return createdEmployee;
 
     });
+//--------------------------------------------------------------------------------------------
 
+    /* Update Employee Handler */
     this.on("UPDATE", Employee, async (req) => {
 
         if (!req.user.is("HR")) {
@@ -206,7 +212,9 @@ export default cds.service.impl(function () {
         );
 
     });
+//------------------------------------------------------------------------------------------
 
+    /* Delete Employee Handler */
     this.on("DELETE", Employee, async (req) => {
 
         if (!req.user.is("HR")) {

@@ -5,8 +5,10 @@ import "dotenv/config";
 
 export default cds.service.impl(async function () { 
 
+    /* Access Entities */
     const { Employee, Session } = cds.entities("empmgmt");
 
+    /* Login Validation */
     this.before("login", (req) => {
         const { email, password } = req.data.credentials;
 
@@ -14,7 +16,9 @@ export default cds.service.impl(async function () {
             req.reject(400, "Email and password are required.");
         }
     });
+//----------------------------------------------------------------------------------------------------
 
+    /* Login Handler */
     this.on("login", async (req) => {
 
         const { email, password } = req.data.credentials;
@@ -93,7 +97,9 @@ export default cds.service.impl(async function () {
         };
 
     });
+//--------------------------------------------------------------------------------------
 
+    /* Refresh Token Handler */
     this.on("refreshToken", async (req) => {
 
         const { refreshToken } = req.data;
@@ -197,7 +203,9 @@ export default cds.service.impl(async function () {
         };
 
     });
+//--------------------------------------------------------------------------------------------
 
+    /* Logout Handler */
     this.on("logout", async (req) => {
 
         const { refreshToken } = req.data;

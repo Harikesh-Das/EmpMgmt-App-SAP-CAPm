@@ -2,6 +2,7 @@ namespace empmgmt;
 
 using {managed} from '@sap/cds/common';
 
+// Custom Datatypes
 type EmployeeRole   : String enum {
     employee;
     manager;
@@ -24,12 +25,15 @@ type LeaveStatus    : String enum {
     rejected;
     cancelled;
 }
+//-----------------------------------------------------------------------
+
+//Entities Delaration
 
 @assert.unique: {
+//Unique Fields for Employee Entity
     empId: [empId],
     email: [email]
 }
-
 entity Employee : managed {
     key ID           : UUID;
 
@@ -57,6 +61,7 @@ entity Leave : managed {
 }
 
 @assert.unique: {employee: [employee]}
+// Unique Field for LeaveBalance Entity
 entity LeaveBalance : managed {
     key ID                     : UUID;
         employee               : Association to Employee not null;
