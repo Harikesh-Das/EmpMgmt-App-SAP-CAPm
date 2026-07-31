@@ -1,11 +1,12 @@
 import cds from '@sap/cds';
+import { message } from '@sap/cds/lib/log/cds-error';
 
 
 
 export default cds.service.impl(function () {
     /* Access Entites */
     const { Leave } = this.entities;
-    const { Employee, LeaveBalance } = cds.entities('empmgmt');
+    const { Employee, LeaveBalance, Holiday } = cds.entities('empmgmt');
     //-------------------------------------------------------------------------------
 
     /* Helper Fucntions */
@@ -326,6 +327,37 @@ export default cds.service.impl(function () {
 
         return {
             message: "Cancelled Leave"
+        }
+    });
+    //----------------------------------------------------------------------------
+
+    /* Create holiday Handler */
+    this.before('CREATE', Holiday, async (req) => {
+
+        const tx = cds.transaction(req);
+
+        if (req.user.is('HR')) {
+
+            const { holidayName, holidayDate } = req.data;
+
+            if (!holidayName || !holidayDate) return req.reject(400, "Holiday either has no name or no date");
+
+            if (isValidDate(holidayDate) === false) {
+                return req.reject(400, 'Either date does not exist or is invalid')
+            }
+
+            const holidayExists = await tx.run(
+                SELECT.one.from(Holiday).where({ holidayDate: holidayDate })
+            );
+
+            if (holidayExists) return req.reject(400, " A holiday already exists");
+
+
+
+
+
+        } else {
+            return req.reject(403, "Unauthorized")
         }
     });
 
