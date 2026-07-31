@@ -5,7 +5,7 @@ export default cds.service.impl(function () {
     const { Leave } = this.entities;
 
     // define Employee, LeaveBalance entities from empmgmt service
-    const { Employee, Leave, LeaveBalance } = cds.entities('empmgmt');
+    const { Employee, LeaveBalance } = cds.entities('empmgmt');
 
     // validate if the provided value is a date
     function isValidDate(value) {
@@ -25,15 +25,19 @@ export default cds.service.impl(function () {
         return Math.floor(milliseconds / (1000 * 60 * 60 * 24)) + 1;
     }
 
+    async function getCurrentEmployee(tx, req) {
+        return await tx.run(
+            SELECT.one.from(Employee).where({ email: req.user.id })
+        )
+    }
+
     this.before('CREATE', Leave, async (req) => {
 
         // start a transaction for the request
         const tx = cds.transaction(req);
 
         // get employee record for the current user
-        const employee = await tx.run(
-            SELECT.one.from(Employee).where({ email: req.user.id })
-        );
+        const employee = await getCurrentEmployee(tx,req);
 
         // reject if employee does not exist
         if (!employee) {
@@ -164,7 +168,7 @@ export default cds.service.impl(function () {
                     ID: employee.manager_ID
                 }
             } else {
-                return req.reject(404, "Aprrover is not HR")
+                return req.reject(404, "Approver is not HR")
             }
 
         }
@@ -199,4 +203,42 @@ export default cds.service.impl(function () {
 
 
     });
+
+    this.before('READ', Leave, async (req) => {
+        const tx = cds.transaction(req);
+
+        const employee = await getCurrentEmployee(tx,req);
+
+        if (!employee) {
+            return req.reject(404, "User not found.");
+        }
+
+
+        if (req.user.is('HR')) {
+            return;
+        }
+
+        if (req.user.is('Manager')) {
+            const managerEmployees = await tx.run(
+                SELECT.from(Employee)
+                    .columns('ID')
+                    .where({ manager_ID: employee.ID })
+            )
+
+            const employeeIDs = managerEmployees.map(emp => emp.ID);
+            employeeIDs.push(employee.ID);
+
+            req.query.where('employee_ID in', employeeIDs);
+            return;
+
+        }
+
+        if (req.user.is('Employee')) {
+            req.query.where({
+                employee_ID: employee.ID
+            });
+            return;
+        }
+    })
+
 });
