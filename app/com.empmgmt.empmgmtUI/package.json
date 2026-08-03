@@ -1,0 +1,17 @@
+{
+    "name": "com.empmgmt.empmgmtUI",
+    "scripts": {
+        "build": "mbt build --mtar com.empmgmt.empmgmtUI.mtar",
+        "build:workspaces": "npm run build --workspaces --if-present",
+        "deploy": "cf deploy mta_archives/com.empmgmt.empmgmtUI.mtar --retries 0",
+        "lint": "npm run lint --workspaces --if-present",
+        "ui5lint": "npm run ui5lint --workspaces --if-present",
+        "start:empmgmt": "npm start --workspace empmgmt"
+    },
+    "dependencies": {
+        "mbt": "^1"
+    },
+    "workspaces": [
+        "empmgmt"
+    ]
+}
