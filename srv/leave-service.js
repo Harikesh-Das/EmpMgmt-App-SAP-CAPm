@@ -1,5 +1,5 @@
 import cds from '@sap/cds';
-import { message } from '@sap/cds/lib/log/cds-error';
+
 
 
 
@@ -10,6 +10,7 @@ export default cds.service.impl(function () {
     //-------------------------------------------------------------------------------
 
     /* Helper Fucntions */
+
     function isValidDate(value) {
         return !Number.isNaN(new Date(value).getTime());
     }
@@ -52,6 +53,113 @@ export default cds.service.impl(function () {
                 400,
                 `Only pending leaves can be processed. Current status: ${leave.status}`
             );
+        }
+    }
+
+    async function getEmployeeDashboard(tx,req, employee) {
+        const pendingLeaves = await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({ employee_ID:employee.ID, status: 'pending' })
+        );
+
+        const approvedLeaves = await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({ employee_ID:employee.ID, status: 'approved' })
+        );
+
+        const rejectedLeaves = await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({ employee_ID:employee.ID, status: 'rejected' })
+        );
+
+        const cancelledLeaves = await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({employee_ID:employee.ID, status: 'cancelled' })
+        );
+
+        const balanceLeaves = await tx.run(
+            SELECT.one
+                .from(LeaveBalance).columns('sickBalanceRemaining', 'casualBalanceRemaining').where({ employee_ID:employee.ID})
+        );
+
+        if(!balanceLeaves) return req.reject(404,"no leave balance found")
+
+        const today = new Date().toISOString().split('T')[0];
+        const upcomingHolidays = await tx.run(
+            SELECT.one.from(Holiday).columns`count(*) as count`.where({ holidayDate: { '>=': today } })
+        );
+
+        return{
+            myPendingLeaves:pendingLeaves.count,
+            myApprovedLeaves: approvedLeaves.count,
+            myRejectedLeaves:rejectedLeaves.count,
+            myCancelledLeaves:cancelledLeaves.count,
+            myCasualBalance: balanceLeaves.casualBalanceRemaining,
+            mySickBalance:balanceLeaves.sickBalanceRemaining,
+            upcomingHolidays:upcomingHolidays.count
+        }
+    }
+
+    async function getManagerDashboard(tx,req, employee) {
+        const teamSize= await tx.run(
+            SELECT.one.from(Employee).columns`count(*) as count`.where({manager_ID:employee.ID})
+        );
+
+        const pendingApprovals= await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({approver_ID:employee.ID,status:'pending'})
+        )
+
+        const today = new Date().toISOString().split('T')[0];
+        const upcomingHolidays = await tx.run(
+            SELECT.one.from(Holiday).columns`count(*) as count`.where({ holidayDate: { '>=': today } })
+        );
+
+        return{
+            teamSize:teamSize.count,
+            pendingApprovals:pendingApprovals.count,
+            upcomingHolidays:upcomingHolidays.count
+        }
+    }
+
+    async function getHrDashboard(tx) {
+        const totalEmployees= await tx.run(
+            SELECT.one.from(Employee).columns`count(*) as count`
+        );
+
+        const activeEmployees= await tx.run(
+            SELECT.one.from(Employee).columns`count(*) as count`.where({status:'active'})
+        );
+
+        const inactiveEmployees= await tx.run(
+            SELECT.one.from(Employee).columns`count(*) as count`.where({status:'inactive'})
+        );
+
+        const pendingLeaves= await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({status: 'pending'})
+        );
+
+        const approvedLeaves= await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({status: 'approved'})
+        );
+
+        const rejectedLeaves= await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({status: 'rejected'})
+        );
+
+        const cancelledLeaves= await tx.run(
+            SELECT.one.from(Leave).columns`count(*) as count`.where({status: 'cancelled'})
+        );
+
+        const today = new Date().toISOString().split('T')[0];
+        const upcomingHolidays = await tx.run(
+            SELECT.one.from(Holiday).columns`count(*) as count`.where({ holidayDate: { '>=': today } })
+        );
+        
+        return{
+            totalEmployees:totalEmployees.count,
+            activeEmployees:activeEmployees.count,
+            inactiveEmployees:inactiveEmployees.count,
+            pendingLeaves:pendingLeaves.count,
+            approvedLeaves:approvedLeaves.count,
+            rejectedLeaves:rejectedLeaves.count,
+            cancelledLeaves:cancelledLeaves.count,
+            upcomingHolidays: upcomingHolidays.count
         }
     }
     //--------------------------------------------------------------------
@@ -342,9 +450,8 @@ export default cds.service.impl(function () {
 
             if (!holidayName || !holidayDate) return req.reject(400, "Holiday either has no name or no date");
 
-            if (isValidDate(holidayDate) === false) {
-                return req.reject(400, 'Either date does not exist or is invalid')
-            }
+            if (isValidDate(holidayDate) === false) return req.reject(400, 'Either date does not exist or is invalid')
+
 
             const holidayExists = await tx.run(
                 SELECT.one.from(Holiday).where({ holidayDate: holidayDate })
@@ -361,4 +468,78 @@ export default cds.service.impl(function () {
         }
     });
 
-});
+
+    /* Update Holiday Handler */
+    this.before('UPDATE', Holiday, async (req) => {
+
+        const tx = cds.transaction(req);
+
+        if (req.user.is('HR')) {
+
+            const { holidayName, holidayDate, ID } = req.data;
+
+            const holiday = await tx.run(
+                SELECT.one.from(Holiday).where({ ID: ID })
+            );
+
+            if (!holiday) return req.reject(404, "Holiday not found");
+
+
+            if (!holidayName || !holidayDate) return req.reject(400, "Holiday either has no name or no date");
+
+            if (isValidDate(holidayDate) === false) {
+                return req.reject(400, 'Either date does not exist or is invalid')
+            }
+
+            const holidayExists = await tx.run(
+                SELECT.one.from(Holiday).where({
+                    holidayDate: holidayDate,
+                    ID: { '!=': ID }
+                })
+            );
+
+            if (holidayExists) return req.reject(400, " A holiday already exists");
+
+
+
+
+        } else {
+            return req.reject(403, "Unauthorized");
+        }
+    });
+
+    /* Delete Holiday Handler */
+    this.before('DELETE', Holiday, async (req) => {
+
+        const tx = cds.transaction(req);
+
+        if (req.user.is('HR')) {
+
+            const holiday = await tx.run(
+                SELECT.one.from(Holiday).where({ ID: req.data.ID })
+            );
+
+            if (!holiday) return req.reject(404, "No holiday found");
+
+        } else {
+            return req.reject(403, "Unauthorized");
+        }
+    });
+    //--------------------------------------------------------------------------------------------------------------------------------------------
+
+    /* Dashboard */
+    this.on('getDashboard', async (req) => {
+
+        const tx = cds.transaction(req);
+
+        const employee = await getCurrentEmployee(tx, req);
+
+        if (!employee) return req.reject(404, "Employee not found");
+
+        if (req.user.is('Employee')) return await getEmployeeDashboard(tx,req, employee);
+
+        if (req.user.is('Manager')) return await getManagerDashboard(tx,req, employee);
+
+        if (req.user.is('HR')) return await getHrDashboard(tx);
+    });
+}); 
