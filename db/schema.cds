@@ -30,7 +30,7 @@ type LeaveStatus    : String enum {
 //Entities Delaration
 
 @assert.unique: {
-//Unique Fields for Employee Entity
+    //Unique Fields for Employee Entity
     empId: [empId],
     email: [email]
 }
@@ -45,6 +45,9 @@ entity Employee : managed {
         role         : EmployeeRole not null default 'employee';
         status       : EmployeeStatus not null default 'active';
         manager      : Association to Employee;
+        profileImage : LargeString;
+        fileName     : String(255);
+        mimeType     : String(100);
 }
 
 entity Leave : managed {

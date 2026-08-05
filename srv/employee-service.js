@@ -6,7 +6,15 @@ export default cds.service.impl(function () {
 
     /* Access Entities */
     const { Employee, Leave, LeaveBalance } = this.entities;
-//---------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------
+
+    /* Helper Funtions */
+    async function getCurrentEmployee(tx, req) {
+        return await tx.run(
+            SELECT.one.from(Employee).where({ email: req.user.id })
+        )
+    }
+    //---------------------------------------------------------------------------
 
     /* View Employee Handler */
     this.on("READ", Employee, async (req) => {
@@ -64,7 +72,7 @@ export default cds.service.impl(function () {
         return req.reject(403, "Forbidden");
 
     });
-//-------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------
 
     /* Create Employee Handler */
     this.on("CREATE", Employee, async (req) => {
@@ -125,7 +133,7 @@ export default cds.service.impl(function () {
         return createdEmployee;
 
     });
-//--------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------
 
     /* Update Employee Handler */
     this.on("UPDATE", Employee, async (req) => {
@@ -212,7 +220,7 @@ export default cds.service.impl(function () {
         );
 
     });
-//------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
 
     /* Delete Employee Handler */
     this.on("DELETE", Employee, async (req) => {
@@ -261,7 +269,54 @@ export default cds.service.impl(function () {
         };
 
     });
+    //---------------------------------------------------------------------------------
 
+    /* Image upload handler */
+        this.on("uploadProfileImage", async (req) => {
+
+        const tx = cds.transaction(req);
+
+        const { ID, image, fileName, mimeType } = req.data;
+
+        const imageBuffer = Buffer.from(image, "base64");
+
+        // Input Validation
+        if (!ID || !image || !fileName || !mimeType) {
+            return req.reject(400, "All fields are required");
+        }
+
+        // Employee Validation
+        const employee = await tx.run(
+            SELECT.one.from(Employee).where({ ID })
+        );
+
+        if (!employee) {
+            return req.reject(404, "Employee not found");
+        }
+
+        // Authorization
+        const currentEmployee = await getCurrentEmployee(tx, req);
+
+        if (!req.user.is("HR") && currentEmployee.ID !== ID) {
+            return req.reject(403, "Unauthorized");
+        }
+
+        // Update Image
+        await tx.run(
+            UPDATE(Employee)
+                .set({
+                    profileImage: image,
+                    fileName: fileName,
+                    mimeType: mimeType
+                })
+                .where({ ID })
+        );
+
+        return {
+            message: "Profile image uploaded successfully"
+        };
+
+    });
 
 
 });

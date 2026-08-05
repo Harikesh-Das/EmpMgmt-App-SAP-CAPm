@@ -1,8 +1,6 @@
 import cds from '@sap/cds';
 
 
-
-
 export default cds.service.impl(function () {
     /* Access Entites */
     const { Leave } = this.entities;

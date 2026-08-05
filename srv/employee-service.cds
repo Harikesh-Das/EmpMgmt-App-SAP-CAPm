@@ -2,7 +2,7 @@ using {empmgmt as db} from '../db/schema';
 
 service EmployeeService {
 
-// Role Based Access 
+    // Role Based Access
 
     @restrict: [
         {
@@ -22,5 +22,11 @@ service EmployeeService {
     //Projections
 
     entity Employee as projection on db.Employee;
+
+    // Actions
+    action uploadProfileImage(ID: UUID,
+                            image: LargeBinary,
+                            fileName: String,
+                            mimeType: String);
 
 }
