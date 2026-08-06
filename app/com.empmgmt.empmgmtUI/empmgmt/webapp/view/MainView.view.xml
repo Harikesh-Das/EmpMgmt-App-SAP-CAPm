@@ -2,5 +2,23 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m">
     <Page id="page" title="{i18n>title}">
+        <content>
+            <Panel id="pnlEmployee" headerText="Employee Details">
+                <content>
+
+                    <VBox id="mainVBox">
+                        <Text id="txtTitle" text="{/name}"/>
+                        <Label id="lblName" text="Employee Name" labelFor="inpName"/>
+
+                        <Input id="inpName" placeholder="Enter employee name" value="{/name}" />
+
+                        <HBox id="buttonBox">
+                            <Button id="btnSave" text="Save" type="Emphasized" icon="sap-icon://save" press=".onSave"/>
+                            <Button id="btnCancel" text="Cancel" type="Reject" icon="sap-icon://delete"/>
+                        </HBox>
+                    </VBox>
+                </content>
+            </Panel>
+        </content>
     </Page>
 </mvc:View>
