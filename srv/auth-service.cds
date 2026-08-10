@@ -16,7 +16,7 @@ type LoginResponse {
 
 service AuthService {
 
-// Auth Actions
+    // Auth Actions
     action login(credentials: LoginRequest)   returns LoginResponse;
 
     action refreshToken(refreshToken: String) returns LoginResponse;
