@@ -1,21 +1,65 @@
-<mvc:View controllerName="empmgmt.controller.MainView"
+<mvc:View
+    controllerName="empmgmt.controller.MainView"
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m">
-    <Page id="page" title="{i18n>title}">
+    xmlns="sap.m"
+>
+    <Page
+        id="page"
+        title="{i18n>title}"
+    >
         <content>
-            <Panel id="pnlEmployee" headerText="Employee Details">
+            <Panel
+                id="pnlEmployee"
+                headerText="Employee Details"
+            >
                 <content>
+                    <VBox
+                        id="vboxEmployee"
+                        width="100%"
+                    >
+                        <l:Grid
+                            id="employeeGrid"
+                            xmlns:l="sap.ui.layout"
+                            defaultSpan="L4 M6 S12"
+                            hSpacing="1"
+                            vSpacing="1"
+                        >
+                            <Panel
+                                id="pnlTotalEmployees"
+                                headerText="Total Employees"
+                            >
+                                <content>
+                                    <Text
+                                        id="txtTotalEmployees"
+                                        text="120"
+                                    />
+                                </content>
+                            </Panel>
 
-                    <VBox id="mainVBox">
-                        <Text id="txtTitle" text="{/name}"/>
-                        <Label id="lblName" text="Employee Name" labelFor="inpName"/>
+                            <Panel
+                                id="pnlActiveEmployees"
+                                headerText="Active Employees"
+                            >
+                                <content>
+                                    <Text
+                                        id="txtActiveEmployees"
+                                        text="110"
+                                    />
+                                </content>
+                            </Panel>
 
-                        <Input id="inpName" placeholder="Enter employee name" value="{/name}" />
-
-                        <HBox id="buttonBox">
-                            <Button id="btnSave" text="Save" type="Emphasized" icon="sap-icon://save" press=".onSave"/>
-                            <Button id="btnCancel" text="Cancel" type="Reject" icon="sap-icon://delete"/>
-                        </HBox>
+                            <Panel
+                                id="pnlPendingLeaves"
+                                headerText="Pending Leaves"
+                            >
+                                <content>
+                                    <Text
+                                        id="txtPendingLeaves"
+                                        text="8"
+                                    />
+                                </content>
+                            </Panel>
+                        </l:Grid>
                     </VBox>
                 </content>
             </Panel>

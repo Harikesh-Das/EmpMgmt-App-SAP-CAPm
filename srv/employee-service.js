@@ -8,7 +8,7 @@ export default cds.service.impl(function () {
     const { Employee, Leave, LeaveBalance } = this.entities;
     //-----------------------------------------------------------------------------------------
 
-    /* Helper Funtions */
+    /* Helper Functions */
     async function getCurrentEmployee(tx, req) {
         return await tx.run(
             SELECT.one.from(Employee).where({ email: req.user.id })

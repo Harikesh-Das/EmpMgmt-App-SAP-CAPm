@@ -1,7 +1,7 @@
 namespace empmgmt;
 
-using {managed} from '@sap/cds/common';
-
+using {managed} from '@sap/cds/common.cds';
+        
 // Custom Datatypes
 type EmployeeRole   : String enum {
     employee;
