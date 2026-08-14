@@ -63,6 +63,87 @@
                     </VBox>
                 </content>
             </Panel>
+
+            <Panel
+                id="pnlJsonModel"
+                headerText="JSON Model"
+            >
+                <content>
+                    <Text
+                        id="txtName"
+                        text="{/name}"
+                    />
+
+                    <Input
+                        id="inpName"
+                        value="{/name}"
+                    />
+                    <List
+                        id="somelist"
+                        items="{/employees}"
+                    >
+                        <items>
+                            <StandardListItem
+                                id="somelistitem"
+                                title="{name}"
+                                description="{department}"
+                            />
+                        </items>
+                    </List>
+                    <Table
+                        id="employeeTable"
+                        items="{/employees}"
+                        mode="MultiSelect"
+                        selectionChange=".onSelectionChange"
+                    >
+                        <columns>
+                            <Column id="colName">
+                                <Text
+                                    id="sometext"
+                                    text="Name"
+                                />
+                            </Column>
+
+                            <Column id="colDepartment">
+                                <Text
+                                    id="sometext1"
+                                    text="Department"
+                                />
+                            </Column>
+
+                            <Column id="colRole">
+                                <Text
+                                    id="sometext2"
+                                    text="Role"
+                                />
+                            </Column>
+                        </columns>
+
+                        <items>
+                            <ColumnListItem
+                                id="employeeRow"
+                                type="Navigation"
+                                highlight="Information"
+                            >
+                                <cells>
+                                    <Text
+                                        id="sometext3"
+                                        text="{name}"
+                                    />
+                                    <Text
+                                        id="sometext4"
+                                        text="{department}"
+                                    />
+                                    <Text
+                                        id="sometext5"
+                                        text="{role}"
+                                    />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </content>
+            </Panel>
         </content>
     </Page>
 </mvc:View>

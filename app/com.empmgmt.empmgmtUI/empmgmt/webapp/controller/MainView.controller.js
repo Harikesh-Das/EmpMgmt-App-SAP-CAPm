@@ -8,7 +8,27 @@ sap.ui.define([
     return Controller.extend("empmgmt.controller.MainView", {
         onInit() {
             const oModel = new JSONModel({
-                name: ""
+                name: "",
+                department: "",
+
+                employees: [
+                    { name: "Alice", department: "HR" },
+                    { name: "Bob", department: "IT" }
+                ],
+                employees: [
+                    {
+                        name: "Alice",
+                        department: "HR",
+                        role: "HR"
+                    },
+                    {
+                        name: "Bob",
+                        department: "IT",
+                        role: "Employee"
+                    }
+                ]
+
+
             });
 
             this.getView().setModel(oModel);
@@ -27,6 +47,14 @@ sap.ui.define([
 
             this.byId("inpName").setValue("");
 
+        },
+        onSelectionChange(oEvent) {
+            const aItems = oEvent.getParameter("listItems");
+
+            aItems.forEach((oItem) => {
+                const oEmployee = oItem.getBindingContext().getObject();
+                console.log(oEmployee);
+            });
         }
     });
 });
