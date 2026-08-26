@@ -1,37 +1,17 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
-    "sap/ui/model/json/JSONModel"
-], (Controller, MessageToast, JSONModel) => {
+    "sap/ui/model/odata/v4/ODataModel"
+], (Controller, MessageToast, ODataModel) => {
     "use strict";
 
     return Controller.extend("empmgmt.controller.MainView", {
         onInit() {
-            const oModel = new JSONModel({
-                name: "",
-                department: "",
+            const oODataModel = new ODataModel({
+                serviceUrl: "/odata/v4/employee/"
+            })
 
-                employees: [
-                    { name: "Alice", department: "HR" },
-                    { name: "Bob", department: "IT" }
-                ],
-                employees: [
-                    {
-                        name: "Alice",
-                        department: "HR",
-                        role: "HR"
-                    },
-                    {
-                        name: "Bob",
-                        department: "IT",
-                        role: "Employee"
-                    }
-                ]
-
-
-            });
-
-            this.getView().setModel(oModel);
+            this.getView().setModel(oODataModel)
 
         },
         onSave(oEvent) {

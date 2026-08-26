@@ -65,38 +65,23 @@
             </Panel>
 
             <Panel
-                id="pnlJsonModel"
-                headerText="JSON Model"
+                id="pnlODataModel"
+                headerText="OData Model"
             >
                 <content>
-                    <Text
-                        id="txtName"
-                        text="{/name}"
-                    />
-
-                    <Input
-                        id="inpName"
-                        value="{/name}"
-                    />
-                    <List
-                        id="somelist"
-                        items="{/employees}"
-                    >
-                        <items>
-                            <StandardListItem
-                                id="somelistitem"
-                                title="{name}"
-                                description="{department}"
-                            />
-                        </items>
-                    </List>
                     <Table
                         id="employeeTable"
-                        items="{/employees}"
+                        items="{/Employee}"
                         mode="MultiSelect"
                         selectionChange=".onSelectionChange"
                     >
                         <columns>
+                            <Column id="colEmpID">
+                                <Text
+                                    id="sometextBlah"
+                                    text="empId"
+                                />
+                            </Column>
                             <Column id="colName">
                                 <Text
                                     id="sometext"
@@ -117,6 +102,12 @@
                                     text="Role"
                                 />
                             </Column>
+                            <Column id="colStatus">
+                                <Text
+                                    id="sometextBlah1"
+                                    text="status"
+                                />
+                            </Column>
                         </columns>
 
                         <items>
@@ -128,6 +119,10 @@
                                 <cells>
                                     <Text
                                         id="sometext3"
+                                        text="{empId}"
+                                    />
+                                    <Text
+                                        id="sometextBlah2"
                                         text="{name}"
                                     />
                                     <Text
@@ -137,6 +132,10 @@
                                     <Text
                                         id="sometext5"
                                         text="{role}"
+                                    />
+                                    <Text
+                                        id="sometext6"
+                                        text="{status}"
                                     />
                                 </cells>
                             </ColumnListItem>

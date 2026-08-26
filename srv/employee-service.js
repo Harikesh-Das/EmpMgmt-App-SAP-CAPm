@@ -22,9 +22,7 @@ export default cds.service.impl(function () {
         const tx = cds.transaction(req);
 
         if (req.user.is("HR")) {
-            return tx.run(
-                req.query
-            );
+            return tx.run(req.query);
         }
 
         if (req.user.is("Manager")) {
@@ -272,7 +270,7 @@ export default cds.service.impl(function () {
     //---------------------------------------------------------------------------------
 
     /* Image upload handler */
-        this.on("uploadProfileImage", async (req) => {
+    this.on("uploadProfileImage", async (req) => {
 
         const tx = cds.transaction(req);
 
