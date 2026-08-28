@@ -32,7 +32,7 @@
         }
     },
     "sap.ui5": {
-        "flexEnabled": true,
+        "flexEnabled": false,
         "dependencies": {
             "minUI5Version": "1.148.1",
             "libs": {
@@ -73,17 +73,39 @@
             },
             "routes": [
                 {
-                    "name": "RouteMainView",
-                    "pattern": ":?query:",
+                    "name": "Login",
+                    "pattern": "",
                     "target": [
-                        "TargetMainView"
+                        "Login"
+                    ]
+                },
+                {
+                    "name": "EmployeeHome",
+                    "pattern": "employee",
+                    "target": [
+                        "EmployeeHome"
+                    ]
+                },
+                {
+                    "name": "ManagerHrHome",
+                    "pattern": "manager-hr",
+                    "target":[
+                        "ManagerHrHome"
                     ]
                 }
             ],
             "targets": {
-                "TargetMainView": {
-                    "id": "MainView",
-                    "name": "MainView"
+                "Login": {
+                    "id": "Login",
+                    "name": "Login"
+                },
+                "EmployeeHome":{
+                    "id":"EmployeeHome",
+                    "name":"EmployeeHome"
+                },
+                "ManagerHrHome":{
+                    "id":"ManagerHrHome",
+                    "name":"ManagerHrHome"
                 }
             }
         },

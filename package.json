@@ -8,7 +8,8 @@
     "dotenv": "^17.4.2",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
-    "sqlite": "^5.1.1"
+    "sqlite": "^5.1.1",
+    "@sap/xssec": "^4.15.0"
   },
   "devDependencies": {
     "@cap-js/cds-types": "^0.18.0",
@@ -24,9 +25,15 @@
   "cds": {
     "requires": {
       "db": {
-        "kind": "sqlite",
-        "credentials": {
-          "url": "db.sqlite"
+        "[development]":{
+
+          "kind": "sqlite",
+          "credentials": {
+            "url": "db.sqlite"
+          }
+        },
+        "[production]":{
+          "kind":"hana"
         }
       },
       "auth": {

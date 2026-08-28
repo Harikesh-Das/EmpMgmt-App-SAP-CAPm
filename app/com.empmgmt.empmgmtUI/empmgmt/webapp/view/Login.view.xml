@@ -1,0 +1,41 @@
+<mvc:View
+    controllerName="empmgmt.controller.Login"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+>
+    <Page
+        id="loginPage"
+        title="Login"
+    >
+        <content>
+            <Panel
+                id="loginMainPanel"
+                headerText="Login"
+            >
+                <VBox id="loginVbox">
+                    <Text id="emailText" />
+                    <Input
+                        id="emailInput"
+                        placeholder="Enter your email"
+                        required="true"
+                    />
+
+                    <Text id="passwordText" />
+                    <Input
+                        id="passwordInput"
+                        placeholder="Enter your password"
+                        required="true"
+                    />
+
+                    <Button
+                        id="loginButton"
+                        text="Login"
+                        type="Emphasized"
+                        icon="sap-icon://save"
+                        press=".onLoginButtonClick"
+                    />
+                </VBox>
+            </Panel>
+        </content>
+    </Page>
+</mvc:View>

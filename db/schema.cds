@@ -79,9 +79,4 @@ entity Holiday : managed {
         holidayDate : Date not null;
 }
 
-entity Session : managed {
-    key ID           : UUID;
-        employee     : Association to Employee not null;
-        refreshToken : LargeString not null;
-        expiresAt    : Timestamp not null;
-}
+
