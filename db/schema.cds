@@ -27,7 +27,7 @@ type LeaveStatus    : String enum {
 }
 //-----------------------------------------------------------------------
 
-//Entities Delaration
+//Entities Declaration
 
 @assert.unique: {
     //Unique Fields for Employee Entity
