@@ -13,6 +13,9 @@ server:
             - /resources
             - /test-resources
           url: https://sdk.openui5.org
+        backend:
+          - path: /odata/v4
+            url: http://localhost:4004
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:

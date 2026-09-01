@@ -8,8 +8,8 @@ type LoginRequest {
 
 type LoginResponse {
     
-    empId : String(10);
-    name  : String(100);
+    
+    email: String(255);
     role  : db.EmployeeRole;
 }
 //----------------------------------------------------

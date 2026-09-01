@@ -1,9 +1,6 @@
-import cds from '@sap/cds';
-import bcrypt from 'bcrypt';
+import cds from "@sap/cds";
 
 export default cds.service.impl(function () {
-    /* Access  Entities*/
-    const { Employee } = cds.entities("empmgmt");
 
     /* Login Validation */
     this.before("login", (req) => {
@@ -13,41 +10,37 @@ export default cds.service.impl(function () {
             req.reject(400, "Email and password are required.");
         }
     });
-    //------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------
 
     /* Login Handler */
     this.on("login", async (req) => {
+
         const { email, password } = req.data.credentials;
-        const employee = await SELECT.one
-            .from(Employee)
-            .where({ email });
 
-        if (!employee) {
+        const users = cds.env.requires.auth.users;
+        const user = users[email];
+
+        if (!user) {
             req.reject(401, "Invalid email or password.");
         }
 
-        const passwordMatches = await bcrypt.compare(
-            password,
-            employee.passwordHash
-        );
-
-        if (!passwordMatches) {
+        if (user.password !== password) {
             req.reject(401, "Invalid email or password.");
         }
 
-        if (employee.status === "inactive") {
-            req.reject(403, "Employee account is inactive.");
+
+
+        const role = Object.keys(user.roles).find(role => ["Employee", "Manager", "HR"].includes(role));
+
+        if (!role) {
+            req.reject(403, "No valid role assigned.");
         }
 
-        return{
-            employee:{
-                ID: employee.ID,
-                empId: employee.empId,
-                name: employee.name,
-                email: employee.email,
-                role: employee.role
-            }
-        }
 
-    })
-})
+        return {
+            email: email,
+            role: role
+        };
+    });
+
+});

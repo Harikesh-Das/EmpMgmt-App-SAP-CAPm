@@ -8,34 +8,42 @@
         title="Login"
     >
         <content>
-            <Panel
-                id="loginMainPanel"
-                headerText="Login"
+            <FlexBox
+                id="loginFlexBox"
+                justifyContent="Center"
+                alignItems="Center"
+                height="100%"
+                
             >
-                <VBox id="loginVbox">
-                    <Text id="emailText" />
-                    <Input
-                        id="emailInput"
-                        placeholder="Enter your email"
-                        required="true"
-                    />
+                <Panel
+                    id="loginMainPanel"
+                    headerText="Login"
+                >
+                    <VBox id="loginVbox">
+                        <Text id="emailText" />
+                        <Input
+                            id="emailInput"
+                            placeholder="Enter your email"
+                            required="true"
+                        />
 
-                    <Text id="passwordText" />
-                    <Input
-                        id="passwordInput"
-                        placeholder="Enter your password"
-                        required="true"
-                    />
+                        <Text id="passwordText" />
+                        <Input
+                            id="passwordInput"
+                            placeholder="Enter your password"
+                            required="true"
+                        />
 
-                    <Button
-                        id="loginButton"
-                        text="Login"
-                        type="Emphasized"
-                        icon="sap-icon://save"
-                        press=".onLoginButtonClick"
-                    />
-                </VBox>
-            </Panel>
+                        <Button
+                            id="loginButton"
+                            text="Login"
+                            type="Emphasized"
+                            icon="sap-icon://visits"
+                            press=".onLoginButtonClick"
+                        />
+                    </VBox>
+                </Panel>
+            </FlexBox>
         </content>
     </Page>
 </mvc:View>
