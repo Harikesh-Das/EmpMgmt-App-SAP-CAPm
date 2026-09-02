@@ -1,10 +1,12 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
+    "sap/ui/model/json/JSONModel",
     "empmgmt/model/models"
-], (UIComponent, models) => {
+], (UIComponent, JSONModel, models) => {
     "use strict";
 
     return UIComponent.extend("empmgmt.Component", {
+
         metadata: {
             manifest: "json",
             interfaces: [
@@ -13,13 +15,24 @@ sap.ui.define([
         },
 
         init() {
-            // call the base component's init function
+
             UIComponent.prototype.init.apply(this, arguments);
 
-            // set the device model
-            this.setModel(models.createDeviceModel(), "device");
+            this.setModel(
+                models.createDeviceModel(),
+                "device"
+            );
 
-            // enable routing
+            const userModel = new JSONModel();
+
+            const storedUser = sessionStorage.getItem("user");
+
+            if (storedUser) {
+                userModel.setData(JSON.parse(storedUser));
+            }
+
+            this.setModel(userModel, "user");
+
             this.getRouter().initialize();
         }
     });

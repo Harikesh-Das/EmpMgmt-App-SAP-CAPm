@@ -36,6 +36,7 @@ sap.ui.define([
 
                 const data = await response.json();
 
+
                 if (!response.ok) {
                     MessageToast.show(
                         data.error?.message || "Login failed"
@@ -43,8 +44,23 @@ sap.ui.define([
                     return;
                 }
 
-                const role = data.role;
+                const basicAuth = btoa(`${email}:${password}`);
+
+                sessionStorage.setItem("basicAuth", basicAuth);
                 
+                sessionStorage.setItem("user", JSON.stringify({
+                    email: data.email,
+                    role: data.role
+                }));
+
+                const role = data.role;
+
+                const userModel = this.getOwnerComponent().getModel("user");
+
+                userModel.setData({
+                    email: data.email,
+                    role: role
+                })
 
                 if (role === "Employee") {
                     this.getOwnerComponent()

@@ -1,0 +1,124 @@
+<mvc:View
+    controllerName="empmgmt.controller.EmployeeHome"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+>
+    <Page
+        id="empHomePage"
+        title="Profile"
+    >
+        <content>
+            <Panel id="empProfilePanel">
+                <HBox id="empProfileHBox">
+                    <Image
+                        id="profileImage"
+                        src="{profile>/imageSrc}"
+                        width="100px"
+                        height="100px"
+                    />
+
+                    <VBox id="empDetailsVBox">
+                        <Text
+                            id="empNameText"
+                            text="{profile>/name}"
+                        />
+                        <Text
+                            id="empEmailText"
+                            text="{profile>/email}"
+                        />
+                        <Text
+                            id="empDeptText"
+                            text="{profile>/department}"
+                        />
+                    </VBox>
+                </HBox>
+            </Panel>
+
+            <Panel id="leavesPanel">
+                <VBox id="leavesVbox">
+                    <HBox id="leavesButtons">
+                        <Button
+                            id="applyButton"
+                            text="Leave kavala Baabu"
+                            type="Emphasized"
+                            icon="sap-icon://sys-enter"
+                            press=".onClickApply"
+                        />
+
+                        <Button
+                            id="cancelButton"
+                            text="Leave odda baabu"
+                            type="Reject"
+                            icon="sap-icon://sys-cancel"
+                            enabled="false"
+                            press=".onClickCancel"
+                        />
+                    </HBox>
+
+                    <Table
+                        id="leaveTable"
+                        width="100%"
+                        mode="SingleSelectLeft"
+                        items="{leaves>/value}"
+                    >
+                        <columns>
+                            <Column id="employeeColumn">
+                                <Text text="Employee ID" />
+                            </Column>
+
+                            <Column id="approverColumn">
+                                <Text text="Approver" />
+                            </Column>
+
+                            <Column id="leaveTypeColumn">
+                                <Text text="Leave Type" />
+                            </Column>
+
+                            <Column id="startDateColumn">
+                                <Text text="Start Date" />
+                            </Column>
+
+                            <Column id="endDateColumn">
+                                <Text text="End Date" />
+                            </Column>
+
+                            <Column id="statusColumn">
+                                <Text text="Status" />
+                            </Column>
+
+                            <Column id="appliedOnColumn">
+                                <Text text="Applied On" />
+                            </Column>
+
+                            <Column id="approvedOnColumn">
+                                <Text text="Approved On" />
+                            </Column>
+                        </columns>
+
+                        <items>
+                            <ColumnListItem id="leaveRow">
+                                <cells>
+                                    <Text text="{leaves>employeeId}" />
+
+                                    <Text text="{leaves>approverName}" />
+
+                                    <Text text="{leaves>leaveType}" />
+
+                                    <Text text="{leaves>startDate}" />
+
+                                    <Text text="{leaves>endDate}" />
+
+                                    <Text text="{leaves>status}" />
+
+                                    <Text text="{leaves>appliedOn}" />
+
+                                    <Text text="{leaves>approvedOn}" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </VBox>
+            </Panel>
+        </content>
+    </Page>
+</mvc:View>
