@@ -1,8 +1,13 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
-    "sap/ui/model/json/JSONModel"
-], (Controller, MessageToast, JSONModel) => {
+    "sap/ui/model/json/JSONModel",
+    "sap/ui/core/Fragment",
+    "sap/m/Input",
+    "sap/m/HBox",
+    "sap/m/Button",
+    "sap/m/MessageBox"
+], (Controller, MessageToast, JSONModel, Fragment, Input, HBox, Button, MessageBox) => {
     "use strict";
 
     return Controller.extend("empmgmt.controller.EmployeeHome", {
@@ -65,104 +70,151 @@ sap.ui.define([
                 MessageToast.show("Unable to load employee profile");
             }
         },
-async loadLeaves() {
+        async loadLeaves() {
 
-    const userModel = this.getOwnerComponent().getModel("user");
-    const email = userModel.getProperty("/email");
+            const userModel = this.getOwnerComponent().getModel("user");
+            const email = userModel.getProperty("/email");
 
-    if (!email) {
-        MessageToast.show("User information not found");
-        return;
-    }
-
-    try {
-
-        const basicAuth = sessionStorage.getItem("basicAuth");
-
-        // Get current employee
-        const employeeResponse = await fetch(
-            `/odata/v4/employee/Employee?$filter=email eq '${email}'`,
-            {
-                headers: {
-                    "Authorization": `Basic ${basicAuth}`
-                }
+            if (!email) {
+                MessageToast.show("User information not found");
+                return;
             }
-        );
 
-        if (!employeeResponse.ok) {
-            throw new Error("Failed to load employee");
-        }
+            try {
 
-        const employeeData = await employeeResponse.json();
-        const employee = employeeData.value[0];
+                const basicAuth = sessionStorage.getItem("basicAuth");
 
-        if (!employee) {
-            MessageToast.show("Employee not found");
-            return;
-        }
+                // Get current employee
+                const employeeResponse = await fetch(
+                    `/odata/v4/employee/Employee?$filter=email eq '${email}'`,
+                    {
+                        headers: {
+                            "Authorization": `Basic ${basicAuth}`
+                        }
+                    }
+                );
 
-        // Get employee's leaves
-        const leaveResponse = await fetch(
-            `/odata/v4/leave/Leave?$filter=employee_ID eq ${employee.ID}`,
-            {
-                headers: {
-                    "Authorization": `Basic ${basicAuth}`
+                if (!employeeResponse.ok) {
+                    throw new Error("Failed to load employee");
                 }
-            }
-        );
 
-        if (!leaveResponse.ok) {
-            throw new Error("Failed to load leaves");
-        }
+                const employeeData = await employeeResponse.json();
+                const employee = employeeData.value[0];
 
-        const leaveData = await leaveResponse.json();
+                if (!employee) {
+                    MessageToast.show("Employee not found");
+                    return;
+                }
 
-        // Add employee/approver information
-        const leaves = await Promise.all(
-            leaveData.value.map(async (leave) => {
+                // Get employee's leaves
+                const leaveResponse = await fetch(
+                    `/odata/v4/leave/Leave?$filter=employee_ID eq ${employee.ID}`,
+                    {
+                        headers: {
+                            "Authorization": `Basic ${basicAuth}`
+                        }
+                    }
+                );
 
-                let approverName = "";
+                if (!leaveResponse.ok) {
+                    throw new Error("Failed to load leaves");
+                }
 
-                if (leave.approver_ID) {
+                const leaveData = await leaveResponse.json();
 
-                    const approverResponse = await fetch(
-                        `/odata/v4/employee/Employee(${leave.approver_ID})`,
-                        {
-                            headers: {
-                                "Authorization": `Basic ${basicAuth}`
+                // Add employee/approver information
+                const leaves = await Promise.all(
+                    leaveData.value.map(async (leave) => {
+
+                        let approverName = "";
+
+                        if (leave.approver_ID) {
+
+                            const approverResponse = await fetch(
+                                `/odata/v4/employee/Employee(${leave.approver_ID})`,
+                                {
+                                    headers: {
+                                        "Authorization": `Basic ${basicAuth}`
+                                    }
+                                }
+                            );
+
+                            if (approverResponse.ok) {
+                                const approver = await approverResponse.json();
+                                approverName = approver.name;
                             }
                         }
-                    );
 
-                    if (approverResponse.ok) {
-                        const approver = await approverResponse.json();
-                        approverName = approver.name;
-                    }
-                }
+                        return {
+                            employeeId: employee.empId,
+                            approverName: approverName,
+                            leaveType: leave.leaveType,
+                            startDate: leave.startDate,
+                            endDate: leave.endDate,
+                            status: leave.status,
+                            appliedOn: leave.appliedOn,
+                            approvedOn: leave.approvedOn
+                        };
+                    })
+                );
 
-                return {
-                    employeeId: employee.empId,
-                    approverName: approverName,
-                    leaveType: leave.leaveType,
-                    startDate: leave.startDate,
-                    endDate: leave.endDate,
-                    status: leave.status,
-                    appliedOn: leave.appliedOn,
-                    approvedOn: leave.approvedOn
-                };
-            })
-        );
+                this.getView().setModel(
+                    new JSONModel({ value: leaves }),
+                    "leaves"
+                );
 
-        this.getView().setModel(
-            new JSONModel({ value: leaves }),
-            "leaves"
-        );
+            } catch (error) {
+                console.error(error);
+                MessageToast.show("Unable to load leaves");
+            }
+        },
 
-    } catch (error) {
-        console.error(error);
-        MessageToast.show("Unable to load leaves");
-    }
-}
+        async onClickApply(){
+            const oView= this.base.getView();
+            if (!this._oCreateDialog){
+                this._oCreateDialog= await Fragment.load({
+                    id: oView.getId(),
+                    name: "empmgmt.view.EmployeeHome",
+                    controller: this
+                });
+
+                oView.addDependent(this._oCreateDialog);
+
+                this.onAddLeave();
+
+            }
+            this._oCreateDialog.open();
+        },
+        async onApplyLeave(){
+            const oView=this.base.getView();
+            const oModel= oView.getModel();
+
+            const oLeaveType=Fragment.byId(
+                oView.getId(),
+                "leaveType"
+            ).getValue();
+
+            const oStartDate= Fragment.byId(
+                oView.getId(),
+                "startDate"
+            ).getValue();
+
+            const oEndDate= Fragment.byId(
+                oView.getId(),
+                "endDate"
+            ).getValue();
+
+            const oReason= Fragment.byId(
+                oView.getId(),
+
+            ).getValue();
+
+            if(!oLeaveType || !oStartDate || !oEndDate || !oReason){
+                MessageBox.error("Please enter all the leave details")
+            }
+
+            
+        }
 
 
     });

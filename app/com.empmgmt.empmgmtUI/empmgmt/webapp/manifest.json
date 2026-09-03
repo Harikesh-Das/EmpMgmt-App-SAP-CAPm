@@ -50,14 +50,16 @@
                 "settings": {
                     "bundleName": "empmgmt.i18n.i18n"
                 }
-            }
-        },
-        "resources": {
-            "css": [
-                {
-                    "uri": "css/style.css"
+            },
+            "": {
+                "type": "sap.ui.model.odata.v4.ODataModel",
+                "settings": {
+                    "serviceUrl": "/odata/v4/leave/",
+                    "synchronizationMode": "None",
+                    "operationMode": "Server",
+                    "autoExpandSelect": true
                 }
-            ]
+            }
         },
         "routing": {
             "config": {
@@ -89,7 +91,7 @@
                 {
                     "name": "ManagerHrHome",
                     "pattern": "manager-hr",
-                    "target":[
+                    "target": [
                         "ManagerHrHome"
                     ]
                 }
@@ -99,13 +101,13 @@
                     "id": "Login",
                     "name": "Login"
                 },
-                "EmployeeHome":{
-                    "id":"EmployeeHome",
-                    "name":"EmployeeHome"
+                "EmployeeHome": {
+                    "id": "EmployeeHome",
+                    "name": "EmployeeHome"
                 },
-                "ManagerHrHome":{
-                    "id":"ManagerHrHome",
-                    "name":"ManagerHrHome"
+                "ManagerHrHome": {
+                    "id": "ManagerHrHome",
+                    "name": "ManagerHrHome"
                 }
             }
         },

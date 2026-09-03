@@ -119,6 +119,58 @@
                     </Table>
                 </VBox>
             </Panel>
+            <Dialog
+                id="applyLeaveDialog"
+                title="Leave Teeskuntava baabu"
+                contentWidth="500px"
+                contentHeight="600px"
+            >
+                <content>
+                    <VBox class="sapUiSmallMargin">
+                        <Label text="Leave Type" />
+                        <Input
+                            id="leaveType"
+                            required="true"
+                        />
+
+                        <Label text="Start Date" />
+                        <DatePicker
+                            id="startDate"
+                            displayFormat="dd-mm-yyyy"
+                            valueFormat="yyyy-mm-dd"
+                            required="true"
+                        />
+
+                        <Label text="End Date" />
+                        <DatePicker
+                            id="endDate"
+                            displayFormat="dd-mm-yyyy"
+                            valueFormat="yyyy-mm-dd"
+                            required="true"
+                        />
+
+                        <Label text="Reason" />
+                        <Input
+                            id="reason"
+                            required="true"
+                        />
+                    </VBox>
+                </content>
+                <beginButton>
+                    <Button
+                        text="Apply"
+                        type="Emphasized"
+                        icon="sap-icon://sys-enter"
+                        press=".onApplyLeave"
+                    />
+                </beginButton>
+                <endButton>
+                    <Button text="Cancel"
+                    type="Reject"
+                    icon="sap-icon://sys-cancel"
+                    press=".onCancelButton"/>
+                </endButton>
+            </Dialog>
         </content>
     </Page>
 </mvc:View>
