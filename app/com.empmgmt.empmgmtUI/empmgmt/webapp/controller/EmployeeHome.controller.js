@@ -2,12 +2,8 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
     "sap/ui/model/json/JSONModel",
-    "sap/ui/core/Fragment",
-    "sap/m/Input",
-    "sap/m/HBox",
-    "sap/m/Button",
     "sap/m/MessageBox"
-], (Controller, MessageToast, JSONModel, Fragment, Input, HBox, Button, MessageBox) => {
+], (Controller, MessageToast, JSONModel, MessageBox) => {
     "use strict";
 
     return Controller.extend("empmgmt.controller.EmployeeHome", {
@@ -15,8 +11,13 @@ sap.ui.define([
         onInit() {
             this.loadEmployeeProfile();
             this.loadLeaves();
+
         },
 
+        //-------------------------------------------------------------------------------------------------------------------
+        /* Event Handlers */
+
+        // Load Employee profile handler
         async loadEmployeeProfile() {
 
 
@@ -70,6 +71,9 @@ sap.ui.define([
                 MessageToast.show("Unable to load employee profile");
             }
         },
+        //---------------------------------------------------------------------------------------------------------------
+
+        // Load Leaves Handler
         async loadLeaves() {
 
             const userModel = this.getOwnerComponent().getModel("user");
@@ -146,6 +150,7 @@ sap.ui.define([
                         }
 
                         return {
+                            ID: leave.ID,
                             employeeId: employee.empId,
                             approverName: approverName,
                             leaveType: leave.leaveType,
@@ -156,8 +161,9 @@ sap.ui.define([
                             approvedOn: leave.approvedOn
                         };
                     })
-                );
 
+
+                );
                 this.getView().setModel(
                     new JSONModel({ value: leaves }),
                     "leaves"
@@ -168,54 +174,145 @@ sap.ui.define([
                 MessageToast.show("Unable to load leaves");
             }
         },
+        //--------------------------------------------------------------------------------------------------------
+        // Apply leave handler
+        async onClickApply() {
 
-        async onClickApply(){
-            const oView= this.base.getView();
-            if (!this._oCreateDialog){
-                this._oCreateDialog= await Fragment.load({
-                    id: oView.getId(),
-                    name: "empmgmt.view.EmployeeHome",
-                    controller: this
-                });
+            this.byId("applyLeaveDialog").open();
 
-                oView.addDependent(this._oCreateDialog);
-
-                this.onAddLeave();
-
-            }
-            this._oCreateDialog.open();
         },
-        async onApplyLeave(){
-            const oView=this.base.getView();
-            const oModel= oView.getModel();
 
-            const oLeaveType=Fragment.byId(
-                oView.getId(),
-                "leaveType"
-            ).getValue();
+        async onCancelButton() {
+            this.byId("applyLeaveDialog").close();
+        },
 
-            const oStartDate= Fragment.byId(
-                oView.getId(),
-                "startDate"
-            ).getValue();
+        async onApplyLeave() {
+            const oLeaveType = this.byId("selectLeaveType").getSelectedKey();
+            const oStartDate = this.byId("startDate").getValue();
+            const oEndDate = this.byId("endDate").getValue();
+            const oReason = this.byId("reason").getValue();
 
-            const oEndDate= Fragment.byId(
-                oView.getId(),
-                "endDate"
-            ).getValue();
+            if (!oLeaveType || !oStartDate || !oEndDate || !oReason) {
+                MessageBox.error("Please enter all the leave details");
+                return;
+            }
+            try {
 
-            const oReason= Fragment.byId(
-                oView.getId(),
+                const basicAuth = sessionStorage.getItem("basicAuth");
+                const response = await fetch("/odata/v4/leave/Leave",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Basic ${basicAuth}`
+                        },
+                        body: JSON.stringify({
 
-            ).getValue();
+                            leaveType: oLeaveType,
+                            startDate: oStartDate,
+                            endDate: oEndDate,
+                            reason: oReason
+                        })
+                    }
+                );
 
-            if(!oLeaveType || !oStartDate || !oEndDate || !oReason){
-                MessageBox.error("Please enter all the leave details")
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error?.message || "Failed to apply leave"
+                    );
+                }
+
+                MessageToast.show("Leave applied successfully");
+
+                this.byId("applyLeaveDialog").close();
+                this.byId("selectLeaveType").setSelectedKey("");
+                this.byId("startDate").setValue("");
+                this.byId("endDate").setValue("");
+                this.byId("reason").setValue("");
+
+                this.loadLeaves();
+
+
+
+
+            } catch (error) {
+                console.error(error)
+                MessageBox.error(
+                    error.message || "Failed to create new leave"
+                )
             }
 
-            
-        }
 
+        },
+        //------------------------------------------------------------------------------------------------------------
+        onSelectionChange(oEvent) {
+            const selectedItem = oEvent.getParameter("listItem");
+
+            this.byId("cancelButton").setEnabled(!!selectedItem);
+        },
+
+        //-----------------------------------------------------------------------------------------------------------
+        async onClickCancel() {
+            const table = this.byId("leaveTable");
+            const selectedItem = table.getSelectedItem();
+
+            if (!selectedItem) {
+                return;
+            }
+
+            const leave = selectedItem.getBindingContext("leaves").getObject();
+
+            // Check status before calling backend
+            if (leave.status !== "pending") {
+                MessageBox.error(
+                    `Only pending leaves can be cancelled. Current status: ${leave.status}`
+                );
+                return;
+            }
+
+            const leaveId = leave.ID;
+
+            try {
+                const basicAuth = sessionStorage.getItem("basicAuth");
+
+                const response = await fetch(
+                    "/odata/v4/leave/cancelLeave",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Basic ${basicAuth}`
+                        },
+                        body: JSON.stringify({
+                            ID: leaveId
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    const data = await response.json();
+
+                    throw new Error(
+                        data.error?.message || "Failed to cancel leave"
+                    );
+                }
+
+                MessageToast.show("Leave cancelled successfully");
+
+                await this.loadLeaves();
+
+                this.byId("cancelButton").setEnabled(false);
+
+            } catch (error) {
+                console.error(error);
+
+                MessageBox.error(
+                    error.message || "Failed to cancel leave"
+                );
+            }
+        }
 
     });
 });

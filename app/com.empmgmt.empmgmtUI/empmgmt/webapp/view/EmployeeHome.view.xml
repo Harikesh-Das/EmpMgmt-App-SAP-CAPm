@@ -1,13 +1,18 @@
+<!-- Namespace Declarations-->
 <mvc:View
+    xmlns:core="sap.ui.core"
     controllerName="empmgmt.controller.EmployeeHome"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
 >
+    <!--======================================================================================================================-->
+    <!--Main Page initialization-->
     <Page
         id="empHomePage"
         title="Profile"
     >
         <content>
+            <!--Employee Profile Panel-->
             <Panel id="empProfilePanel">
                 <HBox id="empProfileHBox">
                     <Image
@@ -33,10 +38,12 @@
                     </VBox>
                 </HBox>
             </Panel>
-
+            <!--++==============================================================================================================++-->
+            <!--Leave Table Panel -->
             <Panel id="leavesPanel">
                 <VBox id="leavesVbox">
                     <HBox id="leavesButtons">
+                        <!-- Apply and cancel leave buttons-->
                         <Button
                             id="applyButton"
                             text="Leave kavala Baabu"
@@ -54,11 +61,12 @@
                             press=".onClickCancel"
                         />
                     </HBox>
-
+                    <!--Leave Table -->
                     <Table
                         id="leaveTable"
                         width="100%"
                         mode="SingleSelectLeft"
+                        selectionChange=".onSelectionChange"
                         items="{leaves>/value}"
                     >
                         <columns>
@@ -119,6 +127,8 @@
                     </Table>
                 </VBox>
             </Panel>
+            <!--=================================================================================================================-->
+            <!--Leave Application Dialog-->
             <Dialog
                 id="applyLeaveDialog"
                 title="Leave Teeskuntava baabu"
@@ -128,10 +138,18 @@
                 <content>
                     <VBox class="sapUiSmallMargin">
                         <Label text="Leave Type" />
-                        <Input
-                            id="leaveType"
-                            required="true"
-                        />
+                        <Select id="selectLeaveType">
+                            <items>
+                                <core:Item
+                                    key="sick"
+                                    text="sick"
+                                />
+                                <core:Item
+                                    key="casual"
+                                    text="casual"
+                                />
+                            </items>
+                        </Select>
 
                         <Label text="Start Date" />
                         <DatePicker
@@ -165,10 +183,12 @@
                     />
                 </beginButton>
                 <endButton>
-                    <Button text="Cancel"
-                    type="Reject"
-                    icon="sap-icon://sys-cancel"
-                    press=".onCancelButton"/>
+                    <Button
+                        text="Cancel"
+                        type="Reject"
+                        icon="sap-icon://sys-cancel"
+                        press=".onCancelButton"
+                    />
                 </endButton>
             </Dialog>
         </content>
