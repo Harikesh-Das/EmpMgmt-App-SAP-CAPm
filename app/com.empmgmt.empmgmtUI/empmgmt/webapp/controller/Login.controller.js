@@ -70,7 +70,7 @@ sap.ui.define([
                 } else if (role === "Manager" || role === "HR") {
                     this.getOwnerComponent()
                         .getRouter()
-                        .navTo("ManagerHRHome");
+                        .navTo("ManagerHrHome");
 
                 } else {
                     MessageToast.show("Invalid role");

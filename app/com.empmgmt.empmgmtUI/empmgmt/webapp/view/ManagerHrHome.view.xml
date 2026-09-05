@@ -1,0 +1,292 @@
+<!-- Namespace Declarations-->
+<mvc:View
+    xmlns:core="sap.ui.core"
+    controllerName="empmgmt.controller.ManagerHrHome"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+>
+    <!--======================================================================================================================-->
+    <!--Main Page initialization-->
+    <Page
+        id="managerHrHomePage"
+        title="Profile"
+    >
+        <content>
+            <!--Employee Profile Panel-->
+            <Panel id="managerHrProfilePanel">
+                <HBox id="managerHrProfileHBox">
+                    <Image
+                        id="managerHrProfileImage"
+                        src="{profile>/imageSrc}"
+                        width="100px"
+                        height="100px"
+                    />
+
+                    <VBox id="managerHrDetailsVBox">
+                        <Text
+                            id="managerHrNameText"
+                            text="{profile>/name}"
+                        />
+                        <Text
+                            id="managerHrEmailText"
+                            text="{profile>/email}"
+                        />
+                        <Text
+                            id="managerHrDeptText"
+                            text="{profile>/department}"
+                        />
+                    </VBox>
+                </HBox>
+            </Panel>
+            <!--+===========================================================================================================+-->
+
+            <!--Manager Dashboard-->
+            <Panel
+                id="managerDashboard"
+                headerText="Dashboard"
+                visible="false"
+            >
+                <VBox id="managerTeamDetails">
+                    <HBox id="teamSizeVbox">
+                        <Text
+                            id="teamSizeText"
+                            text="Team size"
+                        />
+                        <Text id="teamSizeValue" />
+
+                        <Text
+                            id="pendingApprovalsText"
+                            text="Pending Approvals"
+                        />
+                        <Text id="pendingApprovalsValue" />
+                    </HBox>
+                    <Text
+                        id="upcomingHolidaysText"
+                        text="Upcoming Holidays"
+                    />
+                    <Text id="upcomingHolidaysValue" />
+                </VBox>
+            </Panel>
+            <!--====================================================================================================================-->
+
+            <!--HR Panel-->
+            <Panel
+                id="hrDashboard"
+                headerText="Dashboard"
+                visible="false"
+            >
+                <VBox id="hrTeamDetails">
+                    <HBox id="employeeDetails">
+                        <Text
+                            id="totalEmployeesText"
+                            text="Total Employees"
+                        />
+                        <Text id="totalEmployeesValue" />
+
+                        <Text
+                            id="activeEmployeesText"
+                            text="Active Employees"
+                        />
+                        <Text id="activeEmployeesValue" />
+
+                        <Text
+                            id="inactiveEmployeesText"
+                            text="Inactive Employees"
+                        />
+                        <Text id="inactiveEmployeesValue" />
+                        <Text />
+                    </HBox>
+
+                    <HBox id="leavesHbox1">
+                        <Text
+                            id="pendingLeavesText"
+                            text="Pending Leaves"
+                        />
+                        <Text id="pendingLeavesValue" />
+
+                        <Text
+                            id="approvedLeavesText"
+                            text="Approved Leaves"
+                        />
+                        <Text id="approvedLeavesValue" />
+                    </HBox>
+
+                    <HBox id="leavesHbox2">
+                        <Text
+                            id="rejectedLeavesText"
+                            text="Rejected Leaves"
+                        />
+                        <Text id="rejectedLeavesValue" />
+
+                        <Text
+                            id="cancelledLeavesText"
+                            text="Cancelled Leaves"
+                        />
+                        <Text id="cancelledLeavesValue" />
+
+                        <Text
+                            id="upcomingHolidaysTxt"
+                            text="Upcoming Holidays"
+                        />
+                        <Text id="upcomingHolidaysVal" />
+                    </HBox>
+                </VBox>
+            </Panel>
+
+            <!--++==============================================================================================================++-->
+            <!--Leave Table Panel -->
+            <Panel id="managerHrLeavesPanel">
+                <VBox id="managerHrLeavesVbox">
+                    <HBox id="managerHrLeavesButtons">
+                        <!-- Apply and cancel leave buttons-->
+                        <Button
+                            id="leavesApplyButton"
+                            text="Leave kavala Baabu"
+                            type="Emphasized"
+                            icon="sap-icon://sys-enter"
+                            press=".onClickApply"
+                        />
+
+                        <Button
+                            id="leavesCancelButton"
+                            text="Leave odda baabu"
+                            type="Reject"
+                            icon="sap-icon://sys-cancel"
+                            enabled="false"
+                            press=".onClickCancel"
+                        />
+                    </HBox>
+                    <!--Leave Table -->
+                    <Table
+                        id="managerHrLeaveTable"
+                        width="100%"
+                        mode="SingleSelectLeft"
+                        selectionChange=".onSelectionChange"
+                        items="{leaves>/value}"
+                    >
+                        <columns>
+                            <Column id="managerHrColumn">
+                                <Text text="Employee ID" />
+                            </Column>
+
+                            <Column id="managerHrApproverColumn">
+                                <Text text="Approver" />
+                            </Column>
+
+                            <Column id="managerHrLeaveTypeColumn">
+                                <Text text="Leave Type" />
+                            </Column>
+
+                            <Column id="managerHrStartDateColumn">
+                                <Text text="Start Date" />
+                            </Column>
+
+                            <Column id="managerHrEndDateColumn">
+                                <Text text="End Date" />
+                            </Column>
+
+                            <Column id="managerHrStatusColumn">
+                                <Text text="Status" />
+                            </Column>
+
+                            <Column id="managerHrAppliedOnColumn">
+                                <Text text="Applied On" />
+                            </Column>
+
+                            <Column id="managerHrApprovedOnColumn">
+                                <Text text="Approved On" />
+                            </Column>
+                        </columns>
+
+                        <items>
+                            <ColumnListItem id="managerHrLeaveRow">
+                                <cells>
+                                    <Text text="{leaves>employeeId}" />
+
+                                    <Text text="{leaves>approverName}" />
+
+                                    <Text text="{leaves>leaveType}" />
+
+                                    <Text text="{leaves>startDate}" />
+
+                                    <Text text="{leaves>endDate}" />
+
+                                    <Text text="{leaves>status}" />
+
+                                    <Text text="{leaves>appliedOn}" />
+
+                                    <Text text="{leaves>approvedOn}" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </VBox>
+            </Panel>
+
+            <!--=================================================================================================================-->
+            <!--Leave Application Dialog-->
+            <Dialog
+                id="managerHrApplyLeaveDialog"
+                title="Leave Teeskuntava baabu"
+                contentWidth="500px"
+                contentHeight="600px"
+            >
+                <content>
+                    <VBox class="sapUiSmallMargin">
+                        <Label text="Leave Type" />
+                        <Select id="managerHrSelectLeaveType">
+                            <items>
+                                <core:Item
+                                    key="sick"
+                                    text="sick"
+                                />
+                                <core:Item
+                                    key="casual"
+                                    text="casual"
+                                />
+                            </items>
+                        </Select>
+
+                        <Label text="Start Date" />
+                        <DatePicker
+                            id="LeaveStartDate"
+                            displayFormat="dd-mm-yyyy"
+                            valueFormat="yyyy-mm-dd"
+                            required="true"
+                        />
+
+                        <Label text="End Date" />
+                        <DatePicker
+                            id="LeaveEndDate"
+                            displayFormat="dd-mm-yyyy"
+                            valueFormat="yyyy-mm-dd"
+                            required="true"
+                        />
+
+                        <Label text="Reason" />
+                        <Input
+                            id="LeaveReason"
+                            required="true"
+                        />
+                    </VBox>
+                </content>
+                <beginButton>
+                    <Button
+                        text="Apply"
+                        type="Emphasized"
+                        icon="sap-icon://sys-enter"
+                        press=".onApplyLeave"
+                    />
+                </beginButton>
+                <endButton>
+                    <Button
+                        text="Cancel"
+                        type="Reject"
+                        icon="sap-icon://sys-cancel"
+                        press=".onCancelButton"
+                    />
+                </endButton>
+            </Dialog>
+        </content>
+    </Page>
+</mvc:View>
