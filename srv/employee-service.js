@@ -26,27 +26,20 @@ export default cds.service.impl(function () {
         }
 
         if (req.user.is("Manager")) {
-
             const manager = await tx.run(
-                SELECT.one
-                    .from(Employee)
-                    .where({
-                        email: req.user.id
-                    })
+                SELECT.one.from(Employee).where({
+                    email: req.user.id,
+                })
             );
 
             if (!manager) {
-                return req.reject(403, "Manager record not found.");
+                return req.reject(404, "Manager not found");
             }
 
             return tx.run(
                 req.query
-                    .where({
-                        ID: manager.ID
-                    })
-                    .or({
-                        manager_ID: manager.ID
-                    })
+                    .where({ manager_ID: manager.ID })
+                    .or({ ID: manager.ID })
             );
         }
 

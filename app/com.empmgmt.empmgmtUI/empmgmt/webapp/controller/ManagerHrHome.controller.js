@@ -24,9 +24,38 @@ sap.ui.define([
             this.loadEmployeeProfile(user.email);
             this.loadDashboard(user.role);
             this.loadLeaves();
+
+            this.getOwnerComponent()
+                .getRouter()
+                .getRoute("ManagerHrHome")
+                .attachPatternMatched(this.onRouteMatched, this);
+
+
+
         },
 
         //----------------------------------------------------------------------------------------------
+
+        async onRouteMatched() {
+            try {
+                const user = JSON.parse(
+                    sessionStorage.getItem("user")
+                );
+
+                if (!user || !user.email) {
+                    MessageBox.error("User session not found");
+                    return;
+                }
+
+                await this.loadEmployeeProfile(user.email);
+                await this.loadDashboard(user.role);
+                await this.loadLeaves();
+
+            } catch (error) {
+                console.error(error);
+                MessageBox.error("Failed to load page");
+            }
+        },
 
         // LOAD PROFILE
 
@@ -237,7 +266,7 @@ sap.ui.define([
             const selectedItem =
                 oEvent.getParameter("listItem");
 
-            this.byId("managerHrCancelButton")
+            this.byId("leavesCancelButton")
                 .setEnabled(!!selectedItem);
         },
         //---------------------------------------------------------------------------------------------------------
@@ -373,11 +402,11 @@ sap.ui.define([
                 "LeaveReason"
             ).setValue("");
         },
+        //--------------------------------------------------------------------------------------------
 
 
-        // =========================
         // CANCEL LEAVE
-        // =========================
+
         async onClickCancel() {
 
             const table =
@@ -450,7 +479,7 @@ sap.ui.define([
                 table.removeSelections(true);
 
                 this.byId(
-                    "managerHrCancelButton"
+                    "leavesCancelButton"
                 ).setEnabled(false);
 
             } catch (error) {
