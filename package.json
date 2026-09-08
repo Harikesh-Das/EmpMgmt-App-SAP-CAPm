@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@sap/cds": "^10.0.5",
+    "@sap/cds": "^10.1.0",
+    "@sap/xssec": "^4.15.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
-    "sqlite": "^5.1.1",
-    "@sap/xssec": "^4.15.0"
+    "sqlite": "^5.1.1"
   },
   "devDependencies": {
     "@cap-js/cds-types": "^0.18.0",
@@ -18,22 +18,21 @@
     "sqlite3": "^6.0.1"
   },
   "scripts": {
-    "start": "cds-serve",
+    "start": "cds serve",
     "watch": "cds watch"
   },
   "private": true,
   "cds": {
     "requires": {
       "db": {
-        "[development]":{
-
+        "[development]": {
           "kind": "sqlite",
           "credentials": {
             "url": "db.sqlite"
           }
         },
-        "[production]":{
-          "kind":"hana"
+        "[production]": {
+          "kind": "hana"
         }
       },
       "auth": {
